@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Apply for Leave | HMS{% endblock %}
+
+{% block head %}
+<style>
+    .form-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 2.5rem;
+    }
+    
+    .form-header {
+        margin-bottom: 2rem;
+    }
+    
+    .form-header h2 {
+        color: var(--primary);
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--dark);
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+    
+    .history-section {
+        margin-top: 3rem;
+    }
+    
+    .history-card {
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+        border-left: 4px solid var(--gray);
+    }
+    
+    .status-pending { border-left-color: var(--warning); }
+    .status-approved { border-left-color: var(--secondary); }
+    .status-rejected { border-left-color: var(--danger); }
+    
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .badge-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+    .badge-approved { background: rgba(16, 185, 129, 0.1); color: var(--secondary); }
+    .badge-rejected { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('student_dashboard') }}" style="color: var(--gray); text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+</a>
+
+<div class="form-container glass">
+    <div class="form-header">
+        <h2>Apply for Leave</h2>
+        <p class="text-gray">Submit a request to leave the hostel premises.</p>
+    </div>
+    
+    <form method="POST" action="{{ url_for('apply_leave') }}">
+        <div class="form-group">
+            <label class="form-label" for="leave_date">Leave Date</label>
+            <input type="date" id="leave_date" name="leave_date" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" for="return_date">Return Date</label>
+            <input type="date" id="return_date" name="return_date" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" for="reason">Reason for Leave</label>
+            <textarea id="reason" name="reason" class="form-control" rows="4" required placeholder="Please provide specific details..."></textarea>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Request</button>
+    </form>
+</div>
+
+<div class="history-section">
+    <h3 style="margin-bottom: 1.5rem;">Your Leave History</h3>
+    {% if leaves %}
+        {% for leave in leaves %}
+            <div class="history-card status-{{ leave.Status|lower }}">
+                <div>
+                    <h4 style="margin-bottom: 0.5rem;">{{ leave.Leave_Date }} to {{ leave.Return_Date }}</h4>
+                    <p style="color: var(--gray); font-size: 0.9rem;">{{ leave.Reason }}</p>
+                </div>
+                <div>
+                    <span class="badge badge-{{ leave.Status|lower }}">{{ leave.Status }}</span>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-gray">No leave history found.</p>
+    {% endif %}
+</div>
+{% endblock %}

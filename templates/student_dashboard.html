@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard | HMS{% endblock %}
+
+{% block head %}
+<style>
+    .dashboard-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .dashboard-title {
+        font-size: 2rem;
+        color: var(--dark);
+    }
+    
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        padding: 1.5rem;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        background: rgba(79, 70, 229, 0.1);
+        color: var(--primary);
+    }
+    
+    .stat-details h3 {
+        font-size: 0.9rem;
+        color: var(--gray);
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-details p {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--dark);
+    }
+    
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .action-card {
+        padding: 1.5rem;
+        text-align: center;
+        border-radius: 12px;
+        text-decoration: none;
+        color: var(--dark);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255,255,255,0.4);
+    }
+    
+    .action-card i {
+        font-size: 2rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+    
+    .action-card:hover {
+        background: white;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        transform: translateY(-3px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1 class="dashboard-title">Welcome back, {{ session.name }}!</h1>
+        <p class="text-gray">Here is your hostel overview</p>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="stat-card glass">
+        <div class="stat-icon"><i class="fa-solid fa-door-closed"></i></div>
+        <div class="stat-details">
+            <h3>Current Room</h3>
+            {% if allocation %}
+                <p>{{ allocation.Room_Number }} <span style="font-size: 0.8rem; color: var(--gray);">({{ allocation.Hostel_Name }})</span></p>
+            {% else %}
+                <p>Not Assigned</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="stat-card glass">
+        <div class="stat-icon" style="color: var(--warning); background: rgba(245, 158, 11, 0.1);"><i class="fa-solid fa-money-bill-wave"></i></div>
+        <div class="stat-details">
+            <h3>Pending Fees</h3>
+            <p>${{ "%.2f"|format(stats.pending_fees if stats.pending_fees else 0.0) }}</p>
+        </div>
+    </div>
+    
+    <div class="stat-card glass">
+        <div class="stat-icon" style="color: var(--secondary); background: rgba(16, 185, 129, 0.1);"><i class="fa-solid fa-clipboard-check"></i></div>
+        <div class="stat-details">
+            <h3>Active Complaints</h3>
+            <p>{{ stats.active_complaints if stats else 0 }}</p>
+        </div>
+    </div>
+    
+    <div class="stat-card glass">
+        <div class="stat-icon" style="color: #6366f1; background: rgba(99, 102, 241, 0.1);"><i class="fa-solid fa-shirt"></i></div>
+        <div class="stat-details">
+            <h3>Pending Laundry</h3>
+            <p>{{ stats.pending_laundry if stats else 0 }}</p>
+        </div>
+    </div>
+</div>
+
+<h2 style="margin-bottom: 1rem;">Quick Actions</h2>
+<div class="action-grid">
+    <a href="#" class="action-card glass">
+        <i class="fa-solid fa-user"></i>
+        <h3>My Profile</h3>
+    </a>
+    <a href="{{ url_for('apply_leave') }}" class="action-card glass">
+        <i class="fa-solid fa-plane-departure"></i>
+        <h3>Apply Leave</h3>
+    </a>
+    <a href="{{ url_for('report_issue') }}" class="action-card glass">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <h3>Report Issue</h3>
+    </a>
+    <a href="{{ url_for('student_fees') }}" class="action-card glass">
+        <i class="fa-solid fa-file-invoice-dollar"></i>
+        <h3>Pay Fees</h3>
+    </a>
+    <a href="{{ url_for('student_laundry') }}" class="action-card glass">
+        <i class="fa-solid fa-shirt"></i>
+        <h3>Laundry Service</h3>
+    </a>
+</div>
+{% endblock %}

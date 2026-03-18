@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Issue Bill | HMS{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('manage_fees') }}" style="color: var(--gray); text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Fees
+</a>
+
+<div class="glass" style="max-width: 600px; margin: 0 auto; padding: 2.5rem; border-radius: 12px;">
+    <h2 style="color: var(--primary); margin-bottom: 1.5rem;">Issue a New Bill</h2>
+    
+    <form method="POST" action="{{ url_for('issue_bill') }}">
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" for="student_id">Select Student</label>
+            <select id="student_id" name="student_id" required style="width: 100%; padding: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px;">
+                <option value="" disabled selected>-- Choose Student --</option>
+                {% for student in students %}
+                    <option value="{{ student.Student_ID }}">{{ student.Name }} ({{ student.Course }})</option>
+                {% else %}
+                    <option value="" disabled>No students registered.</option>
+                {% endfor %}
+            </select>
+            <p style="font-size: 0.85rem; color: var(--gray); margin-top: 0.5rem;">Note: You can issue multiple bills to the same student.</p>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+            <div style="flex: 1;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" for="amount">Fee Amount ($)</label>
+                <input type="number" step="0.01" id="amount" name="amount" required placeholder="e.g., 500.00" style="width: 100%; padding: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px;">
+            </div>
+            <div style="flex: 1;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" for="due_date">Due Date</label>
+                <input type="date" id="due_date" name="due_date" required style="width: 100%; padding: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px;">
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Generate Bill</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Laundry System | HMS{% endblock %}
+
+{% block head %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+    
+    .laundry-grid {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 2rem;
+    }
+    
+    .form-container, .table-container {
+        padding: 2rem;
+        border-radius: 12px;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .data-table th, .data-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .badge {
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .badge-pending { background: rgba(245, 158, 11, 0.2); color: #d97706; }
+    .badge-completed { background: rgba(16, 185, 129, 0.2); color: #059669; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Laundry Service</h1>
+    <p class="text-gray">Request laundry service and view your history</p>
+</div>
+
+<div class="laundry-grid">
+    <div class="form-container glass">
+        <h2 style="margin-bottom: 1.5rem;">New Request</h2>
+        <form method="POST">
+            <div class="form-group">
+                <label for="clothes_count">Number of Clothes</label>
+                <input type="number" id="clothes_count" name="clothes_count" class="form-control" min="1" required placeholder="e.g. 5">
+                <small class="text-gray" style="display: block; margin-top: 0.5rem;"><i class="fa-solid fa-circle-info"></i> Charges: $20 per cloth</small>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                <i class="fa-solid fa-paper-plane"></i> Submit Request
+            </button>
+        </form>
+    </div>
+    
+    <div class="table-container glass">
+        <h2 style="margin-bottom: 1.5rem;">Laundry History</h2>
+        
+        {% if laundry_records %}
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Clothes Count</th>
+                        <th>Charges</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in laundry_records %}
+                    <tr>
+                        <td>{{ record.Laundry_Date }}</td>
+                        <td>{{ record.Clothes_Count }}</td>
+                        <td>${{ record.Charges }}</td>
+                        <td>
+                            {% if record.Status == 'Pending' %}
+                                <span class="badge badge-pending">Pending</span>
+                            {% else %}
+                                <span class="badge badge-completed">Completed</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 2rem; color: var(--gray);">
+            <i class="fa-solid fa-shirt" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+            <p>No laundry requests found.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Room Allocations | HMS{% endblock %}
+
+{% block head %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    th {
+        background: var(--light);
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--gray);
+        border-bottom: 2px solid #E5E7EB;
+    }
+    
+    td {
+        padding: 1rem;
+        border-bottom: 1px solid #E5E7EB;
+        vertical-align: middle;
+    }
+    
+    tr:last-child td {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('warden_dashboard') }}" style="color: var(--gray); text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+</a>
+
+<div class="page-header">
+    <div>
+        <h1 style="color: var(--dark);">Room Allocations</h1>
+        <p class="text-gray">Assign students to available rooms</p>
+    </div>
+    <a href="{{ url_for('allocate_room') }}" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> New Allocation</a>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Room No.</th>
+                <th>Hostel</th>
+                <th>Allocated On</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alloc in allocations %}
+            <tr>
+                <td>
+                    <strong>{{ alloc.Student_Name }}</strong><br>
+                    <span style="font-size: 0.85rem; color: var(--gray);">{{ alloc.Email }}</span>
+                </td>
+                <td>{{ alloc.Course }}</td>
+                <td><strong style="color: var(--primary);">{{ alloc.Room_Number }}</strong></td>
+                <td>{{ alloc.Hostel_Name }}</td>
+                <td>{{ alloc.Allotment_Date }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('deallocate_room', allocation_id=alloc.Allocation_ID) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to remove this student from their room?');">
+                        <button type="submit" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.85rem; color: var(--danger); border-color: var(--danger);">Deallocate</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 2rem; color: var(--gray);">No students are currently allocated to any rooms.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

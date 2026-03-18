@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Complaints | HMS{% endblock %}
+
+{% block head %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    th {
+        background: var(--light);
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--gray);
+        border-bottom: 2px solid #E5E7EB;
+    }
+    
+    td {
+        padding: 1rem;
+        border-bottom: 1px solid #E5E7EB;
+        vertical-align: middle;
+    }
+    
+    tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .badge-open { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+    .badge-in-progress { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+    .badge-closed { background: rgba(16, 185, 129, 0.1); color: var(--secondary); }
+    
+    .status-select {
+        padding: 0.4rem;
+        border: 1px solid #E5E7EB;
+        border-radius: 6px;
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('warden_dashboard') }}" style="color: var(--gray); text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+</a>
+
+<div class="page-header">
+    <div>
+        <h1 style="color: var(--dark);">Complaint Management</h1>
+        <p class="text-gray">Track and resolve student issues</p>
+    </div>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Student info</th>
+                <th>Issue Details</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for complaint in complaints %}
+            {% set status_class = complaint.Status|lower|replace(' ', '-') %}
+            <tr>
+                <td>
+                    <strong>{{ complaint.Student_Name }}</strong><br>
+                    <span style="font-size: 0.85rem; color: var(--gray);">Room: {{ complaint.Room_Number or 'Unassigned' }}</span>
+                </td>
+                <td>
+                    <strong>{{ complaint.Complaint_Type }}</strong><br>
+                    <span style="font-size: 0.9rem; color: var(--gray);">{{ complaint.Description }}</span>
+                </td>
+                <td style="white-space: nowrap;">{{ complaint.Complaint_Date }}</td>
+                <td>
+                    <span class="badge badge-{{ status_class }}">{{ complaint.Status }}</span>
+                </td>
+                <td>
+                    <form method="POST" action="{{ url_for('update_complaint', complaint_id=complaint.Complaint_ID) }}" style="display: flex; gap: 0.5rem; align-items: center;">
+                        <select name="status" class="status-select">
+                            <option value="Open" {% if complaint.Status == 'Open' %}selected{% endif %}>Open</option>
+                            <option value="In Progress" {% if complaint.Status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                            <option value="Closed" {% if complaint.Status == 'Closed' %}selected{% endif %}>Closed</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Update</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 2rem; color: var(--gray);">No complaints reported.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

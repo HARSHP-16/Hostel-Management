@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Maintenance | HMS{% endblock %}
+
+{% block head %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+    
+    .maintenance-grid {
+        display: grid;
+        grid-template-columns: 1fr 2.5fr;
+        gap: 2rem;
+    }
+    
+    @media (max-width: 992px) {
+        .maintenance-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .form-container, .table-container {
+        padding: 2rem;
+        border-radius: 12px;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .data-table th, .data-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .badge {
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .badge-pending { background: rgba(245, 158, 11, 0.2); color: #d97706; }
+    .badge-progress { background: rgba(59, 130, 246, 0.2); color: #2563eb; }
+    .badge-completed { background: rgba(16, 185, 129, 0.2); color: #059669; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Manage Maintenance</h1>
+    <p class="text-gray">Log and track maintenance tasks across hostels</p>
+</div>
+
+<div class="maintenance-grid">
+    <div class="form-container glass" style="align-self: start;">
+        <h2 style="margin-bottom: 1.5rem;">Log Maintenance</h2>
+        <form method="POST">
+            <div class="form-group">
+                <label for="hostel_id">Hostel Block *</label>
+                <select id="hostel_id" name="hostel_id" class="form-control" required>
+                    <option value="">Select Hostel...</option>
+                    {% for h in hostels %}
+                    <option value="{{ h.Hostel_ID }}">{{ h.Hostel_Name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="complaint_id">Related Complaint (Optional)</label>
+                <select id="complaint_id" name="complaint_id" class="form-control">
+                    <option value="">None (General Maintenance)</option>
+                    {% for c in complaints %}
+                    <option value="{{ c.Complaint_ID }}">
+                        #{{ c.Complaint_ID }} - {{ c.Complaint_Type }} 
+                        {% if c.Room_ID %} (Room ID: {{ c.Room_ID }}) {% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="work_type">Work Type *</label>
+                <input type="text" id="work_type" name="work_type" class="form-control" required placeholder="e.g. Plumbing, Electrical">
+            </div>
+            
+            <div class="form-group">
+                <label for="cost">Estimated Cost ($)</label>
+                <input type="number" id="cost" name="cost" class="form-control" step="0.01" min="0" placeholder="0.00">
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                <i class="fa-solid fa-plus"></i> Add Record
+            </button>
+        </form>
+    </div>
+    
+    <div class="table-container glass">
+        <h2 style="margin-bottom: 1.5rem;">Maintenance Tasks</h2>
+        
+        {% if tasks %}
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Location</th>
+                        <th>Work Type</th>
+                        <th>Cost</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                    <tr>
+                        <td>{{ task.Maintenance_Date }}</td>
+                        <td>
+                            <strong>{{ task.Hostel_Name }}</strong>
+                            {% if task.Room_Number %}
+                                <br><small class="text-gray">Room {{ task.Room_Number }}</small>
+                            {% endif %}
+                            {% if task.Complaint_Type %}
+                                <br><small class="text-gray"><i class="fa-solid fa-link"></i> {{ task.Complaint_Type }}</small>
+                            {% endif %}
+                        </td>
+                        <td>{{ task.Work_Type }}</td>
+                        <td>${{ task.Cost if task.Cost else '0.00' }}</td>
+                        <td>
+                            {% if task.Status == 'Pending' %}
+                                <span class="badge badge-pending">Pending</span>
+                            {% elif task.Status == 'In Progress' %}
+                                <span class="badge badge-progress">In Progress</span>
+                            {% else %}
+                                <span class="badge badge-completed">Completed</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if task.Status != 'Completed' %}
+                            <form action="{{ url_for('update_maintenance', maintenance_id=task.Maintenance_ID) }}" method="POST" style="display:flex; gap:0.5rem;">
+                                <select name="status" class="form-control" style="padding: 0.3rem; font-size: 0.85rem; width: auto;" onchange="this.form.submit()">
+                                    <option value="Pending" {% if task.Status == 'Pending' %}selected{% endif %}>Pending</option>
+                                    <option value="In Progress" {% if task.Status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                                    <option value="Completed">Completed</option>
+                                </select>
+                            </form>
+                            {% else %}
+                            <span class="text-gray" style="font-size: 0.85rem;"><i class="fa-solid fa-check-double"></i> Done</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 3rem; color: var(--gray);">
+            <i class="fa-solid fa-screwdriver-wrench" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+            <p>No maintenance tasks logged yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

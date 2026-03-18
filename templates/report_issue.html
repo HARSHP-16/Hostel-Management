@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Report Issue | HMS{% endblock %}
+
+{% block head %}
+<style>
+    .form-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 2.5rem;
+    }
+    
+    .form-header {
+        margin-bottom: 2rem;
+    }
+    
+    .form-header h2 {
+        color: var(--primary);
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--dark);
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+    
+    .history-section {
+        margin-top: 3rem;
+    }
+    
+    .history-card {
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+        border-left: 4px solid var(--gray);
+    }
+    
+    .status-open { border-left-color: var(--danger); }
+    .status-in-progress { border-left-color: var(--warning); }
+    .status-closed { border-left-color: var(--secondary); }
+    
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .badge-open { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+    .badge-in-progress { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+    .badge-closed { background: rgba(16, 185, 129, 0.1); color: var(--secondary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('student_dashboard') }}" style="color: var(--gray); text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+</a>
+
+<div class="form-container glass">
+    <div class="form-header">
+        <h2>Report an Issue</h2>
+        <p class="text-gray">Lodge a complaint regarding your room or hostel facilities.</p>
+    </div>
+    
+    <form method="POST" action="{{ url_for('report_issue') }}">
+        <div class="form-group">
+            <label class="form-label" for="complaint_type">Issue Type</label>
+            <select id="complaint_type" name="complaint_type" class="form-control" required>
+                <option value="Electrical">Electrical</option>
+                <option value="Plumbing">Plumbing</option>
+                <option value="Carpentry">Carpentry/Furniture</option>
+                <option value="Cleanliness">Cleanliness</option>
+                <option value="Internet">Internet/Wi-Fi</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" for="description">Detailed Description</label>
+            <textarea id="description" name="description" class="form-control" rows="5" required placeholder="Please describe the issue in detail..."></textarea>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Complaint</button>
+    </form>
+</div>
+
+<div class="history-section">
+    <h3 style="margin-bottom: 1.5rem;">Your Reported Issues</h3>
+    {% if complaints %}
+        {% for complaint in complaints %}
+            {% set status_class = complaint.Status|lower|replace(' ', '-') %}
+            <div class="history-card status-{{ status_class }}">
+                <div>
+                    <h4 style="margin-bottom: 0.25rem;">{{ complaint.Complaint_Type }}</h4>
+                    <p style="color: var(--gray); font-size: 0.9rem; margin-bottom: 0.5rem;">Reported on: {{ complaint.Complaint_Date }}</p>
+                    <p style="color: var(--dark); font-size: 0.95rem;">{{ complaint.Description }}</p>
+                </div>
+                <div>
+                    <span class="badge badge-{{ status_class }}">{{ complaint.Status }}</span>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-gray">You haven't reported any issues.</p>
+    {% endif %}
+</div>
+{% endblock %}

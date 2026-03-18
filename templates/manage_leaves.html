@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Leaves | HMS{% endblock %}
+
+{% block head %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    th {
+        background: var(--light);
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--gray);
+        border-bottom: 2px solid #E5E7EB;
+    }
+    
+    td {
+        padding: 1rem;
+        border-bottom: 1px solid #E5E7EB;
+        vertical-align: middle;
+    }
+    
+    tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .badge-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+    .badge-approved { background: rgba(16, 185, 129, 0.1); color: var(--secondary); }
+    .badge-rejected { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+    
+    .action-btn {
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: inline-block;
+        margin-right: 0.5rem;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .btn-approve {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--secondary);
+    }
+    
+    .btn-approve:hover {
+        background: var(--secondary);
+        color: white;
+    }
+    
+    .btn-reject {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--danger);
+    }
+    
+    .btn-reject:hover {
+        background: var(--danger);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('warden_dashboard') }}" style="color: var(--gray); text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+</a>
+
+<div class="page-header">
+    <div>
+        <h1 style="color: var(--dark);">Leave Management</h1>
+        <p class="text-gray">Review and approve student leave requests</p>
+    </div>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Student Name</th>
+                <th>Dates</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for leave in leaves %}
+            <tr>
+                <td>
+                    <strong>{{ leave.Student_Name }}</strong><br>
+                    <span style="font-size: 0.85rem; color: var(--gray);">Room: {{ leave.Room_Number or 'N/A' }}</span>
+                </td>
+                <td>
+                    {{ leave.Leave_Date }} to <br>{{ leave.Return_Date }}
+                </td>
+                <td style="max-width: 300px;">{{ leave.Reason }}</td>
+                <td>
+                    <span class="badge badge-{{ leave.Status|lower }}">{{ leave.Status }}</span>
+                </td>
+                <td>
+                    {% if leave.Status == 'Pending' %}
+                    <form method="POST" action="{{ url_for('update_leave_status', leave_id=leave.Leave_ID) }}" style="display: inline;">
+                        <input type="hidden" name="status" value="Approved">
+                        <button type="submit" class="action-btn btn-approve">Approve</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('update_leave_status', leave_id=leave.Leave_ID) }}" style="display: inline;">
+                        <input type="hidden" name="status" value="Rejected">
+                        <button type="submit" class="action-btn btn-reject">Reject</button>
+                    </form>
+                    {% else %}
+                    <span style="color: var(--gray); font-size: 0.9rem;">Processed</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 2rem; color: var(--gray);">No leave requests found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

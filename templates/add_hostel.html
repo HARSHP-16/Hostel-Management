@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Setup Hostel | HMS{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('warden_dashboard') }}" style="color: var(--gray); text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+</a>
+
+<div class="glass" style="max-width: 600px; margin: 0 auto; padding: 2.5rem; border-radius: 12px;">
+    <h2 style="color: var(--primary); margin-bottom: 1.5rem;">Add New Hostel Block</h2>
+    
+    <form method="POST" action="{{ url_for('add_hostel') }}">
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" for="name">Hostel Name</label>
+            <input type="text" id="name" name="name" required placeholder="e.g., Jhelum Hostel" style="width: 100%; padding: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px;">
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="flex: 1;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" for="type">Type</label>
+                <select id="type" name="type" style="width: 100%; padding: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px;">
+                    <option value="Boys">Boys</option>
+                    <option value="Girls">Girls</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" for="location">Location</label>
+                <input type="text" id="location" name="location" required placeholder="e.g., North Campus" style="width: 100%; padding: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px;">
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Create Hostel Block</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hostel Management System{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar glass">
+        <a href="{{ url_for('index') }}" class="nav-brand">
+            <i class="fa-solid fa-building-user"></i> HMS
+        </a>
+        <div class="nav-links">
+            {% if session.get('user_id') %}
+                {% if session.get('role') == 'warden' %}
+                    <a href="{{ url_for('warden_dashboard') }}">Dashboard</a>
+                {% else %}
+                    <a href="{{ url_for('student_dashboard') }}">Dashboard</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="btn btn-outline" style="margin-left: 1rem;">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}" class="btn btn-primary" style="margin-left: 1rem;">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- Flash messages block -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Main content block -->
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

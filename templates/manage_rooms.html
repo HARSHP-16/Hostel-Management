@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Rooms | HMS{% endblock %}
+
+{% block head %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    th {
+        background: var(--light);
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--gray);
+        border-bottom: 2px solid #E5E7EB;
+    }
+    
+    td {
+        padding: 1rem;
+        border-bottom: 1px solid #E5E7EB;
+        vertical-align: middle;
+    }
+    
+    tr:last-child td {
+        border-bottom: none;
+    }
+
+    .capacity-bar {
+        width: 100%;
+        height: 8px;
+        background: #E5E7EB;
+        border-radius: 4px;
+        margin-top: 0.5rem;
+        overflow: hidden;
+    }
+
+    .capacity-fill {
+        height: 100%;
+        background: var(--primary);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+
+    .capacity-fill.full {
+        background: var(--danger);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('warden_dashboard') }}" style="color: var(--gray); text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+</a>
+
+<div class="page-header">
+    <div>
+        <h1 style="color: var(--dark);">Room Management</h1>
+        <p class="text-gray">Overview of all hostel rooms and their capacities</p>
+    </div>
+    <a href="{{ url_for('add_room') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add New Room</a>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Room No.</th>
+                <th>Type</th>
+                <th>Hostel</th>
+                <th>Occupancy</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for room in rooms %}
+            <tr>
+                <td><strong>{{ room.Room_Number }}</strong></td>
+                <td>{{ room.Room_Type }}</td>
+                <td>{{ room.Hostel_Name }}</td>
+                <td style="min-width: 150px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--gray);">
+                        <span>{{ room.Occupied_Count }} Students</span>
+                        <span>{{ room.Capacity }} Max</span>
+                    </div>
+                    <div class="capacity-bar">
+                        {% set percentage = (room.Occupied_Count / room.Capacity * 100) if room.Capacity > 0 else 0 %}
+                        <div class="capacity-fill {{ 'full' if percentage >= 100 else '' }}" style="width: {{ percentage }}%;"></div>
+                    </div>
+                </td>
+                <td>
+                    {% if room.Occupied_Count >= room.Capacity %}
+                        <span style="color: var(--danger); font-weight: 500; font-size: 0.9rem;">Full</span>
+                    {% else %}
+                        <span style="color: var(--secondary); font-weight: 500; font-size: 0.9rem;">Available</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="#" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">View</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 2rem; color: var(--gray);">No rooms found. Please add a hostel and a room.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

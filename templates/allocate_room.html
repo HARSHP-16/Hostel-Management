@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Allocate Room | HMS{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('allocations') }}" style="color: var(--gray); text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Allocations
+</a>
+
+<div class="glass" style="max-width: 600px; margin: 0 auto; padding: 2.5rem; border-radius: 12px;">
+    <h2 style="color: var(--primary); margin-bottom: 1.5rem;">Allocating Room</h2>
+    
+    <form method="POST" action="{{ url_for('allocate_room') }}">
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" for="student_id">Select Unallocated Student</label>
+            <select id="student_id" name="student_id" required style="width: 100%; padding: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px;">
+                <option value="" disabled selected>-- Choose Student --</option>
+                {% for student in unallocated_students %}
+                    <option value="{{ student.Student_ID }}">{{ student.Name }} ({{ student.Course }})</option>
+                {% else %}
+                    <option value="" disabled>All students are currently allocated.</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div style="margin-bottom: 2rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" for="room_id">Select Available Room</label>
+            <select id="room_id" name="room_id" required style="width: 100%; padding: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px;">
+                <option value="" disabled selected>-- Choose Room --</option>
+                {% for room in available_rooms %}
+                    <option value="{{ room.Room_ID }}">{{ room.Room_Number }} - {{ room.Hostel_Name }} ({{ room.Occupied_Count }}/{{ room.Capacity }})</option>
+                {% else %}
+                    <option value="" disabled>No available rooms with capacity.</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Finalize Allocation</button>
+    </form>
+</div>
+{% endblock %}

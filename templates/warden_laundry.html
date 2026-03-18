@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Laundry | HMS{% endblock %}
+
+{% block head %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .table-container {
+        padding: 2rem;
+        border-radius: 12px;
+        overflow-x: auto;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .data-table th, .data-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .badge {
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .badge-pending { background: rgba(245, 158, 11, 0.2); color: #d97706; }
+    .badge-completed { background: rgba(16, 185, 129, 0.2); color: #059669; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Manage Laundry</h1>
+        <p class="text-gray">Overview of all student laundry requests</p>
+    </div>
+</div>
+
+<div class="table-container glass">
+    {% if requests %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Student Name</th>
+                <th>Room</th>
+                <th>Date</th>
+                <th>Clothes</th>
+                <th>Charges</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in requests %}
+            <tr>
+                <td>{{ req.Student_Name }}</td>
+                <td>{{ req.Room_Number if req.Room_Number else 'N/A' }}</td>
+                <td>{{ req.Laundry_Date }}</td>
+                <td>{{ req.Clothes_Count }}</td>
+                <td>${{ req.Charges }}</td>
+                <td>
+                    {% if req.Status == 'Pending' %}
+                        <span class="badge badge-pending">Pending</span>
+                    {% else %}
+                        <span class="badge badge-completed">Completed</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if req.Status == 'Pending' %}
+                    <form action="{{ url_for('update_laundry', laundry_id=req.Laundry_ID) }}" method="POST" style="display:inline;">
+                        <input type="hidden" name="status" value="Completed">
+                        <button type="submit" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                            <i class="fa-solid fa-check"></i> Mark Done
+                        </button>
+                    </form>
+                    {% else %}
+                    <span class="text-gray" style="font-size: 0.85rem;"><i class="fa-solid fa-square-check"></i> Processed</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; color: var(--gray);">
+        <i class="fa-solid fa-shirt" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+        <p>No laundry requests yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

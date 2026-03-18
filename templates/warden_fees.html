@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Fees | HMS{% endblock %}
+
+{% block head %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    th {
+        background: var(--light);
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--gray);
+        border-bottom: 2px solid #E5E7EB;
+    }
+    
+    td {
+        padding: 1rem;
+        border-bottom: 1px solid #E5E7EB;
+        vertical-align: middle;
+    }
+    
+    tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    
+    .badge-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+    .badge-overdue { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+    .badge-paid { background: rgba(16, 185, 129, 0.1); color: var(--secondary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('warden_dashboard') }}" style="color: var(--gray); text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+</a>
+
+<div class="page-header">
+    <div>
+        <h1 style="color: var(--dark);">Fee Management & Billing</h1>
+        <p class="text-gray">Issue new hostel bills and track payments</p>
+    </div>
+    <a href="{{ url_for('issue_bill') }}" class="btn btn-primary"><i class="fa-solid fa-file-invoice"></i> Issue New Bill</a>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Amount</th>
+                <th>Due Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fee in fees %}
+            {% set status_class = fee.Payment_Status|lower %}
+            <tr>
+                <td>
+                    <strong>{{ fee.Student_Name }}</strong><br>
+                    <span style="font-size: 0.85rem; color: var(--gray);">{{ fee.Email }}</span>
+                </td>
+                <td>{{ fee.Course }}</td>
+                <td style="font-weight: 600;">${{ "%.2f"|format(fee.Amount) }}</td>
+                <td>{{ fee.Payment_Date or 'N/A' }}</td>
+                <td>
+                    <span class="badge badge-{{ status_class }}">{{ fee.Payment_Status }}</span>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 2rem; color: var(--gray);">No fee generation records yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

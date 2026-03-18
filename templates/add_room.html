@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Room | HMS{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('manage_rooms') }}" style="color: var(--gray); text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Rooms
+</a>
+
+<div class="glass" style="max-width: 600px; margin: 0 auto; padding: 2.5rem; border-radius: 12px;">
+    <h2 style="color: var(--primary); margin-bottom: 1.5rem;">Add New Room</h2>
+    
+    <form method="POST" action="{{ url_for('add_room') }}">
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" for="hostel_id">Hostel</label>
+            <select id="hostel_id" name="hostel_id" required style="width: 100%; padding: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px;">
+                {% for hostel in hostels %}
+                    <option value="{{ hostel.Hostel_ID }}">{{ hostel.Hostel_Name }} ({{ hostel.Type }})</option>
+                {% else %}
+                    <option value="" disabled>No Hostels Available (Add Hostel First)</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" for="room_number">Room Number</label>
+            <input type="text" id="room_number" name="room_number" required placeholder="e.g., A-101" style="width: 100%; padding: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px;">
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+            <div style="flex: 1;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" for="room_type">Room Type</label>
+                <select id="room_type" name="room_type" style="width: 100%; padding: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px;">
+                    <option value="AC">AC</option>
+                    <option value="Non-AC">Non-AC</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" for="capacity">Capacity (Students)</label>
+                <input type="number" id="capacity" name="capacity" min="1" max="10" required value="2" style="width: 100%; padding: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px;">
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Create Room</button>
+    </form>
+</div>
+{% endblock %}

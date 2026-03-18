@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Welcome | Hostel Management System{% endblock %}
+
+{% block head %}
+<style>
+    .hero {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 70vh;
+        gap: 2rem;
+    }
+
+    .hero-content {
+        flex: 1;
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: var(--dark);
+        margin-bottom: 1.5rem;
+        line-height: 1.2;
+        background: linear-gradient(135deg, var(--primary), #8B5CF6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+        font-size: 1.2rem;
+        color: var(--gray);
+        margin-bottom: 2.5rem;
+    }
+
+    .hero-buttons {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .hero-image {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .decorative-blob {
+        width: 400px;
+        height: 400px;
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.2), rgba(139, 92, 246, 0.2));
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        animation: morph 8s ease-in-out infinite;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .decorative-blob i {
+        font-size: 8rem;
+        color: var(--primary);
+    }
+
+    @keyframes morph {
+        0% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+        50% { border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%; }
+        100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+    }
+
+    @media (max-width: 768px) {
+        .hero { flex-direction: column-reverse; text-align: center; }
+        .hero-title { font-size: 2.5rem; }
+        .hero-buttons { justify-content: center; }
+        .decorative-blob { width: 300px; height: 300px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <div class="hero-content">
+        <h1 class="hero-title">Modern Hostel Management at Your Fingertips</h1>
+        <p class="hero-subtitle">Experience a seamless and fully digitized living environment. From quick room allocations to responsive issue tracking, HMS streamlines everything for both students and wardens.</p>
+        <div class="hero-buttons">
+            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">Login</a>
+            <a href="{{ url_for('register') }}" class="btn btn-outline btn-lg">Create Account</a>
+        </div>
+    </div>
+    <div class="hero-image">
+        <div class="decorative-blob">
+            <i class="fa-solid fa-bed"></i>
+        </div>
+    </div>
+</div>
+{% endblock %}
