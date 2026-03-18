@@ -110,5 +110,4 @@ CREATE TABLE IF NOT EXISTS Maintenance (
     FOREIGN KEY (Hostel_ID) REFERENCES Hostel(Hostel_ID) ON DELETE CASCADE
 );
 
-use hostel_management;
-select * from warden;
+

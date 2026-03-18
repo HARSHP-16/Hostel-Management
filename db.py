@@ -10,7 +10,9 @@ def get_db_connection():
         'user': os.environ.get('DB_USER', 'root'),
         'password': os.environ.get('DB_PASS', ''), # Default empty, update if needed
         'database': os.environ.get('DB_NAME', 'hostel_management'),
-        'raise_on_warnings': True
+        'raise_on_warnings': True,
+        'ssl_verify_identity': False,
+        'ssl_ca': ''
     }
     
     return mysql.connector.connect(**config)
