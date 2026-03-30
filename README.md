@@ -67,7 +67,7 @@ MySQL Database
 
 ### 1️⃣ Clone Repository
 ```bash
-git clone https://github.com/your-username/your-repo.git
+git clone https://github.com/HARSHP-16/DBMS-project.git
 cd hostel-management-system
 ```
 
@@ -126,7 +126,12 @@ Open in browser:
 
 ## 📸 Screenshots
 
-> *(Add your project screenshots here)*
+<img width="1920" height="1080" alt="Screenshot (169)" src="https://github.com/user-attachments/assets/8d64d0f9-1a06-4d29-ab5a-f27108731eae" />
+<img width="1920" height="1080" alt="Screenshot (170)" src="https://github.com/user-attachments/assets/644bb407-b5cf-46bd-8466-94ecacf01247" />
+<img width="1920" height="1080" alt="Screenshot (172)" src="https://github.com/user-attachments/assets/c5670776-c3bc-4af4-aaf5-f9128a21e97d" />
+<img width="1920" height="1080" alt="Screenshot (171)" src="https://github.com/user-attachments/assets/5b352744-11e3-4719-a196-72b1f7924cd7" />
+
+
 
 - Student Dashboard  
 - Warden Dashboard  
