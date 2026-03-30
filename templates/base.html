@@ -6,12 +6,14 @@
     <title>{% block title %}Hostel Management System{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="{{ url_for('static', filename='theme.js') }}" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     {% block head %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar glass">
+    <nav class="navbar">
         <a href="{{ url_for('index') }}" class="nav-brand">
-            <i class="fa-solid fa-building-user"></i> HMS
+            <i class="fa-solid fa-building-shield"></i> HMS PRO
         </a>
         <div class="nav-links">
             {% if session.get('user_id') %}
@@ -20,10 +22,43 @@
                 {% else %}
                     <a href="{{ url_for('student_dashboard') }}">Dashboard</a>
                 {% endif %}
-                <a href="{{ url_for('logout') }}" class="btn btn-outline" style="margin-left: 1rem;">Logout</a>
+                
+                <!-- Notification Bell -->
+                <div style="position: relative; margin-left: 1.5rem;">
+                    <button id="notif-btn" class="theme-toggle" style="margin-left: 0;">
+                        <i class="fa-solid fa-bell"></i>
+                        {% if unread_notif_count and unread_notif_count > 0 %}
+                            <span style="position: absolute; top: 0px; right: 0px; background: var(--danger); width: 8px; height: 8px; border-radius: 50%; border: 2px solid var(--nav-bg);"></span>
+                        {% endif %}
+                    </button>
+                    <div id="notif-dropdown">
+                        <div class="notif-header">Notifications</div>
+                        <div id="notif-list">
+                            {% if notifications %}
+                                {% for notif in notifications %}
+                                    <div class="notif-item">
+                                        <span class="notif-msg">{{ notif.Message }}</span>
+                                        <span class="notif-time">{{ notif.Timestamp.strftime('%d %b, %H:%M') if notif.Timestamp else '' }}</span>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="notif-empty">No new notifications</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <button id="theme-toggle" class="theme-toggle" title="Toggle Theme">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+                
+                <a href="{{ url_for('logout') }}" class="btn btn-outline" style="margin-left: 1.5rem;">Logout</a>
             {% else %}
+                <button id="theme-toggle" class="theme-toggle" title="Toggle Theme" style="margin-right: 1.5rem;">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
                 <a href="{{ url_for('login') }}">Login</a>
-                <a href="{{ url_for('register') }}" class="btn btn-primary" style="margin-left: 1rem;">Register</a>
+                <a href="{{ url_for('register') }}" class="btn btn-primary" style="margin-left: 1.5rem;">Register</a>
             {% endif %}
         </div>
     </nav>
@@ -34,7 +69,10 @@
             {% if messages %}
                 <div class="flash-messages">
                     {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                        <div class="alert alert-{{ category }}">
+                            <i class="fa-solid {% if category == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i>
+                            {{ message }}
+                        </div>
                     {% endfor %}
                 </div>
             {% endif %}

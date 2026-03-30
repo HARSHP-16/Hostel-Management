@@ -6,23 +6,74 @@ from auth_utils import login_required, warden_required, student_required
 import pymysql
 import pymysql.cursors
 from urllib.parse import urlparse
+from fpdf import FPDF
+import io
+from flask import send_file
 
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
-def get_db_connection():
-    url = urlparse(os.getenv("MYSQL_URL"))
+def add_notification(user_id, role, message):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "INSERT INTO Notification (User_ID, Role, Message) VALUES (%s, %s, %s)",
+            (user_id, role, message)
+        )
+        conn.commit()
+    except pymysql.Error as err:
+        print(f"Error adding notification: {err}")
+    finally:
+        cursor.close()
+        conn.close()
 
-    return pymysql.connect(
-        host=url.hostname,
-        user=url.username,
-        password=url.password,
-        database=url.path[1:],
-        port=url.port,
-        ssl={"ssl": {}},  # ✅ REQUIRED FOR AIVEN
-        cursorclass=pymysql.cursors.DictCursor
-    )
+@app.context_processor
+def inject_notifications():
+    if 'user_id' in session and 'role' in session:
+        conn = get_db_connection()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        try:
+            cursor.execute(
+                "SELECT * FROM Notification WHERE User_ID = %s AND Role = %s ORDER BY Timestamp DESC LIMIT 5",
+                (session['user_id'], session['role'])
+            )
+            notifications = cursor.fetchall()
+            cursor.execute(
+                "SELECT COUNT(*) as count FROM Notification WHERE User_ID = %s AND Role = %s AND Is_Read = FALSE",
+                (session['user_id'], session['role'])
+            )
+            count_res = cursor.fetchone()
+            unread_count = count_res['count'] if count_res else 0
+            return dict(notifications=notifications, unread_notif_count=unread_count)
+        except pymysql.Error as err:
+            print(f"Error fetching notifications: {err}")
+            return dict(notifications=[], unread_notif_count=0)
+        finally:
+            cursor.close()
+            conn.close()
+    return dict(notifications=[], unread_notif_count=0)
+
+@app.route('/notifications/read/<int:notif_id>', methods=['POST'])
+def mark_notification_read(notif_id):
+    if 'user_id' not in session:
+        return {'success': False}, 401
+        
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            "UPDATE Notification SET Is_Read = TRUE WHERE Notification_ID = %s AND User_ID = %s AND Role = %s",
+            (notif_id, session['user_id'], session['role'])
+        )
+        conn.commit()
+        return {'success': True}
+    except pymysql.Error:
+        return {'success': False}, 500
+    finally:
+        cursor.close()
+        conn.close()
 
 @app.route('/')
 def index():
@@ -177,9 +228,30 @@ def warden_dashboard():
     res = cursor.fetchone()
     stats['pending_fees'] = res['total'] if res['total'] else 0.00
     
+    # --- Chart Data ---
+    # Occupancy Data
+    cursor.execute("SELECT COUNT(*) as occupied FROM Allocation")
+    occupied = cursor.fetchone()['occupied']
+    
+    cursor.execute("SELECT SUM(Capacity) as total_capacity FROM Room")
+    total_capacity = cursor.fetchone()['total_capacity']
+    total_capacity = total_capacity if total_capacity else 0
+    vacant = total_capacity - occupied
+    chart_occupancy = {'occupied': occupied, 'vacant': vacant}
+    
+    # Complaint Status Data
+    cursor.execute("SELECT Status, COUNT(*) as count FROM Complaint GROUP BY Status")
+    complaints_data = cursor.fetchall()
+    chart_complaints = {row['Status']: row['count'] for row in complaints_data}
+    
+    # Fee Status Data
+    cursor.execute("SELECT Payment_Status, COUNT(*) as count FROM Fees GROUP BY Payment_Status")
+    fees_data = cursor.fetchall()
+    chart_fees = {row['Payment_Status']: row['count'] for row in fees_data}
+    
     cursor.close()
     conn.close()
-    return render_template('warden_dashboard.html', stats=stats)
+    return render_template('warden_dashboard.html', stats=stats, chart_occupancy=chart_occupancy, chart_complaints=chart_complaints, chart_fees=chart_fees)
 
 @app.route('/student/apply_leave', methods=['GET', 'POST'])
 @login_required
@@ -251,6 +323,13 @@ def update_leave_status(leave_id):
     
     try:
         cursor.execute("UPDATE Student_Leave SET Status = %s WHERE Leave_ID = %s", (status, leave_id))
+        
+        # Get student ID for notification
+        cursor.execute("SELECT Student_ID FROM Student_Leave WHERE Leave_ID = %s", (leave_id,))
+        res = cursor.fetchone()
+        if res:
+            add_notification(res['Student_ID'], 'student', f'Your leave application has been {status.lower()}.')
+            
         conn.commit()
         flash(f'Leave application {status.lower()} applied successfully.', 'success')
     except pymysql.Error as err:
@@ -503,6 +582,13 @@ def update_complaint(complaint_id):
     cursor = conn.cursor()
     try:
         cursor.execute("UPDATE Complaint SET Status = %s WHERE Complaint_ID = %s", (status, complaint_id))
+        
+        # Get student ID for notification
+        cursor.execute("SELECT Student_ID FROM Complaint WHERE Complaint_ID = %s", (complaint_id,))
+        res = cursor.fetchone()
+        if res:
+            add_notification(res['Student_ID'], 'student', f'Your complaint status is now: {status}.')
+            
         conn.commit()
         flash('Complaint status updated successfully.', 'success')
     except pymysql.Error as err:
@@ -544,6 +630,54 @@ def pay_fees(fee_id):
         conn.close()
     return redirect(url_for('student_fees'))
 
+@app.route('/student/download_receipt/<int:fee_id>')
+@login_required
+@student_required
+def download_receipt(fee_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT f.Fee_ID, f.Amount, f.Payment_Date, s.Name FROM Fees f JOIN Student s ON f.Student_ID = s.Student_ID WHERE Fee_ID = %s AND f.Student_ID = %s AND Payment_Status = 'Paid'", (fee_id, session['user_id']))
+        fee = cursor.fetchone()
+        
+        if not fee:
+            flash('Receipt not found or fee not paid.', 'error')
+            return redirect(url_for('student_fees'))
+            
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Helvetica", "B", 16)
+        pdf.cell(0, 10, align="C", text="Hostel Management System", new_y="NEXT", new_x="LMARGIN")
+        pdf.set_font("Helvetica", size=12)
+        pdf.cell(0, 10, align="C", text="Official Fee Receipt", new_y="NEXT", new_x="LMARGIN")
+        pdf.ln(10)
+        
+        pdf.cell(0, 10, text=f"Receipt No: H-FEE-{fee['Fee_ID']}", new_y="NEXT", new_x="LMARGIN")
+        pdf.cell(0, 10, text=f"Student Name: {fee['Name']}", new_y="NEXT", new_x="LMARGIN")
+        pdf.cell(0, 10, text=f"Payment Date: {fee['Payment_Date']}", new_y="NEXT", new_x="LMARGIN")
+        pdf.cell(0, 10, text=f"Amount Settled: ${fee['Amount']:.2f}", new_y="NEXT", new_x="LMARGIN")
+        
+        pdf.ln(20)
+        pdf.set_font("Helvetica", "I", 10)
+        pdf.cell(0, 10, align="C", text="This is a computer generated receipt.", new_y="NEXT", new_x="LMARGIN")
+        
+        # Output PDF to bytes
+        pdf_bytes = io.BytesIO(pdf.output())
+        
+        return send_file(
+            pdf_bytes,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f'receipt_H-FEE-{fee["Fee_ID"]}.pdf'
+        )
+            
+    except pymysql.Error as err:
+        flash(f"Database error: {err}", 'error')
+        return redirect(url_for('student_fees'))
+    finally:
+        cursor.close()
+        conn.close()
+
 @app.route('/warden/fees')
 @login_required
 @warden_required
@@ -581,6 +715,9 @@ def issue_bill():
                 "INSERT INTO Fees (Student_ID, Amount, Payment_Date, Payment_Status) VALUES (%s, %s, %s, 'Pending')",
                 (student_id, amount, due_date)
             )
+            
+            add_notification(student_id, 'student', f'A new fee bill of ${amount} has been issued. Due: {due_date}.')
+            
             conn.commit()
             flash('Bill issued successfully!', 'success')
             return redirect(url_for('manage_fees'))
@@ -659,6 +796,13 @@ def update_laundry(laundry_id):
     cursor = conn.cursor()
     try:
         cursor.execute("UPDATE Laundry SET Status = %s WHERE Laundry_ID = %s", (status, laundry_id))
+        
+        # Get student ID for notification
+        cursor.execute("SELECT Student_ID FROM Laundry WHERE Laundry_ID = %s", (laundry_id,))
+        res = cursor.fetchone()
+        if res:
+            add_notification(res['Student_ID'], 'student', f'Your laundry request is now: {status}.')
+            
         conn.commit()
         flash('Laundry status updated.', 'success')
     except pymysql.Error as err:

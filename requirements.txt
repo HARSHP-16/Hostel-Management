@@ -4,3 +4,4 @@ python-dotenv==1.0.1
 Werkzeug==3.0.3
 gunicorn==22.0.0
 cryptography==42.0.5
+fpdf2==2.7.9

@@ -11,57 +11,38 @@
         align-items: center;
     }
     
-    .table-container {
-        background: white;
+    .heatmap-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+    
+    .room-card {
+        padding: 1.5rem;
         border-radius: 12px;
+        position: relative;
         overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        margin-bottom: 2rem;
+        border: 1px solid var(--border-color);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     
-    table {
+    .room-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .room-status-indicator {
+        position: absolute;
+        top: 0;
+        left: 0;
         width: 100%;
-        border-collapse: collapse;
+        height: 6px;
     }
     
-    th {
-        background: var(--light);
-        padding: 1rem;
-        text-align: left;
-        font-weight: 600;
-        color: var(--gray);
-        border-bottom: 2px solid #E5E7EB;
-    }
-    
-    td {
-        padding: 1rem;
-        border-bottom: 1px solid #E5E7EB;
-        vertical-align: middle;
-    }
-    
-    tr:last-child td {
-        border-bottom: none;
-    }
-
-    .capacity-bar {
-        width: 100%;
-        height: 8px;
-        background: #E5E7EB;
-        border-radius: 4px;
-        margin-top: 0.5rem;
-        overflow: hidden;
-    }
-
-    .capacity-fill {
-        height: 100%;
-        background: var(--primary);
-        border-radius: 4px;
-        transition: width 0.3s ease;
-    }
-
-    .capacity-fill.full {
-        background: var(--danger);
-    }
+    .status-empty { background-color: var(--secondary); }
+    .status-filling { background-color: var(--warning); }
+    .status-full { background-color: var(--danger); }
 </style>
 {% endblock %}
 
@@ -72,57 +53,65 @@
 
 <div class="page-header">
     <div>
-        <h1 style="color: var(--dark);">Room Management</h1>
-        <p class="text-gray">Overview of all hostel rooms and their capacities</p>
+        <h1 style="color: var(--dark);">Room Heatmap</h1>
+        <p class="text-gray">Visual overview of all hostel rooms and occupancies</p>
     </div>
-    <a href="{{ url_for('add_room') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add New Room</a>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <input type="text" id="searchInput" placeholder="Search rooms..." style="padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); width: 250px;">
+        <a href="{{ url_for('add_room') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add New Room</a>
+    </div>
 </div>
 
-<div class="table-container">
-    <table>
-        <thead>
-            <tr>
-                <th>Room No.</th>
-                <th>Type</th>
-                <th>Hostel</th>
-                <th>Occupancy</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for room in rooms %}
-            <tr>
-                <td><strong>{{ room.Room_Number }}</strong></td>
-                <td>{{ room.Room_Type }}</td>
-                <td>{{ room.Hostel_Name }}</td>
-                <td style="min-width: 150px;">
-                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--gray);">
-                        <span>{{ room.Occupied_Count }} Students</span>
-                        <span>{{ room.Capacity }} Max</span>
-                    </div>
-                    <div class="capacity-bar">
-                        {% set percentage = (room.Occupied_Count / room.Capacity * 100) if room.Capacity > 0 else 0 %}
-                        <div class="capacity-fill {{ 'full' if percentage >= 100 else '' }}" style="width: {{ percentage }}%;"></div>
-                    </div>
-                </td>
-                <td>
-                    {% if room.Occupied_Count >= room.Capacity %}
-                        <span style="color: var(--danger); font-weight: 500; font-size: 0.9rem;">Full</span>
-                    {% else %}
-                        <span style="color: var(--secondary); font-weight: 500; font-size: 0.9rem;">Available</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <a href="#" class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">View</a>
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="6" style="text-align: center; padding: 2rem; color: var(--gray);">No rooms found. Please add a hostel and a room.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="heatmap-grid" id="roomGrid">
+    {% for room in rooms %}
+    {% set pct = (room.Occupied_Count / room.Capacity * 100) if room.Capacity > 0 else 0 %}
+    {% set status_class = 'status-full' if pct >= 100 else ('status-filling' if pct > 0 else 'status-empty') %}
+    
+    <div class="room-card glass" data-search="{{ room.Room_Number }} {{ room.Room_Type }} {{ room.Hostel_Name }}">
+        <div class="room-status-indicator {{ status_class }}"></div>
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+            <div>
+                <h2 style="font-size: 1.5rem; line-height: 1.2;">{{ room.Room_Number }}</h2>
+                <span class="text-gray" style="font-size: 0.85rem;">{{ room.Hostel_Name }} • {{ room.Room_Type }}</span>
+            </div>
+            <div style="font-size: 1.2rem; {{ 'color: var(--danger);' if pct >= 100 else 'color: var(--secondary);' }}">
+                <i class="fa-solid {{ 'fa-door-closed' if pct >= 100 else 'fa-door-open' }}"></i>
+            </div>
+        </div>
+        
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: auto;">
+            <div>
+                <span style="font-size: 1.5rem; font-weight: bold;">{{ room.Occupied_Count }}</span>
+                <span class="text-gray" style="font-size: 0.9rem;">/ {{ room.Capacity }}</span>
+            </div>
+            <a href="#" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Details</a>
+        </div>
+    </div>
+    {% else %}
+    <div style="grid-column: 1 / -1; padding: 3rem; text-align: center; color: var(--gray);" class="glass">
+        <i class="fa-solid fa-hotel" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+        <h3>No Rooms Found</h3>
+        <p>Start by adding a hostel and generating rooms.</p>
+    </div>
+    {% endfor %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('searchInput');
+    const roomCards = document.querySelectorAll('.room-card');
+    
+    searchInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        roomCards.forEach(card => {
+            const data = card.getAttribute('data-search').toLowerCase();
+            if (data.includes(term)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

@@ -155,6 +155,20 @@
             <p>${{ "%.2f"|format(stats.pending_fees if stats.pending_fees else 0.0) }}</p>
         </div>
     </div>
+    <div class="stat-card glass" style="grid-column: span 2; display: flex; flex-direction: column; align-items: flex-start; gap: 1rem;">
+        <h3 style="color: var(--text-muted);">Dashboard Overview</h3>
+        <div style="width: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+            <div>
+                <canvas id="occupancyChart"></canvas>
+            </div>
+            <div>
+                <canvas id="complaintChart"></canvas>
+            </div>
+            <div>
+                <canvas id="feeChart"></canvas>
+            </div>
+        </div>
+    </div>
 </div>
 
 <h2 style="margin-bottom: 1rem;">Management Modules</h2>
@@ -207,8 +221,65 @@
         <i class="fa-solid fa-screwdriver-wrench"></i>
         <div>
             <h3 style="margin-bottom: 0.2rem;">Maintenance</h3>
-            <p style="font-size: 0.85rem; color: var(--gray);">Log and track repairs/maintenance</p>
+            <p style="font-size: 0.85rem; color: var(--gray);">Log and track repairs</p>
         </div>
     </a>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Occupancy Chart
+    const ctxOcc = document.getElementById('occupancyChart').getContext('2d');
+    new Chart(ctxOcc, {
+        type: 'doughnut',
+        data: {
+            labels: ['Occupied', 'Vacant'],
+            datasets: [{
+                data: [{{ chart_occupancy.occupied }}, {{ chart_occupancy.vacant }}],
+                backgroundColor: ['#4F46E5', '#10B981'],
+                borderWidth: 0
+            }]
+        },
+        options: { plugins: { legend: { position: 'bottom', labels: {color: 'gray'} }, title: {display: true, text: 'Room Occupancy', color: 'gray'} } }
+    });
+
+    // Complaint Chart
+    const ctxComp = document.getElementById('complaintChart').getContext('2d');
+    new Chart(ctxComp, {
+        type: 'doughnut',
+        data: {
+            labels: ['Open', 'In Progress', 'Closed'],
+            datasets: [{
+                data: [
+                    {{ chart_complaints.get('Open', 0) }},
+                    {{ chart_complaints.get('In Progress', 0) }},
+                    {{ chart_complaints.get('Closed', 0) }}
+                ],
+                backgroundColor: ['#EF4444', '#F59E0B', '#10B981'],
+                borderWidth: 0
+            }]
+        },
+        options: { plugins: { legend: { position: 'bottom', labels: {color: 'gray'} }, title: {display: true, text: 'Complaints', color: 'gray'} } }
+    });
+
+    // Fees Chart
+    const ctxFees = document.getElementById('feeChart').getContext('2d');
+    new Chart(ctxFees, {
+        type: 'doughnut',
+        data: {
+            labels: ['Paid', 'Pending', 'Overdue'],
+            datasets: [{
+                data: [
+                    {{ chart_fees.get('Paid', 0) }},
+                    {{ chart_fees.get('Pending', 0) }},
+                    {{ chart_fees.get('Overdue', 0) }}
+                ],
+                backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
+                borderWidth: 0
+            }]
+        },
+        options: { plugins: { legend: { position: 'bottom', labels: {color: 'gray'} }, title: {display: true, text: 'Fee Collection', color: 'gray'} } }
+    });
+});
+</script>
 {% endblock %}

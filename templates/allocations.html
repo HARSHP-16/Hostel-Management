@@ -55,7 +55,10 @@
         <h1 style="color: var(--dark);">Room Allocations</h1>
         <p class="text-gray">Assign students to available rooms</p>
     </div>
-    <a href="{{ url_for('allocate_room') }}" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> New Allocation</a>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+        <input type="text" id="searchInput" placeholder="Search by name, room, or course..." style="padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); width: 300px;">
+        <a href="{{ url_for('allocate_room') }}" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> New Allocation</a>
+    </div>
 </div>
 
 <div class="table-container">
@@ -95,4 +98,24 @@
         </tbody>
     </table>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('searchInput');
+    const tableRows = document.querySelectorAll('tbody tr:not(.empty-message)');
+    
+    searchInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        
+        tableRows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            if (text.includes(term)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

@@ -39,7 +39,9 @@ CREATE TABLE IF NOT EXISTS Student (
     Email VARCHAR(100) UNIQUE NOT NULL,
     Password VARCHAR(255) NOT NULL, -- Added for login
     Address TEXT,
-    Course VARCHAR(100)
+    Course VARCHAR(100),
+    Bio TEXT,
+    Emergency_Contact VARCHAR(15)
 );
 
 -- 4. Allocation (links Student and Room)
@@ -110,4 +112,12 @@ CREATE TABLE IF NOT EXISTS Maintenance (
     FOREIGN KEY (Hostel_ID) REFERENCES Hostel(Hostel_ID) ON DELETE CASCADE
 );
 
-
+-- 11. Notification
+CREATE TABLE IF NOT EXISTS Notification (
+    Notification_ID INT AUTO_INCREMENT PRIMARY KEY,
+    User_ID INT NOT NULL,
+    Role ENUM('student', 'warden') NOT NULL,
+    Message TEXT NOT NULL,
+    Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    Is_Read BOOLEAN DEFAULT FALSE
+);
