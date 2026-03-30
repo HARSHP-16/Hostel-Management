@@ -23,14 +23,15 @@ https://hostel-management.azurewebsites.net/
 ## 🚀 Getting Started
 
 ### 1. Clone the Repository
-```bash
+bash
 git clone https://github.com/HARSHP-16/DBMS-project.git
 cd hostel-management-system
 
-2. Create Virtual Environment
+### 2. Create Virtual Environment
 bash
 python -m venv venv
-3. Activate Virtual Environment
+
+### 3. Activate Virtual Environment
 Windows:
 
 bash
@@ -39,10 +40,10 @@ Mac/Linux:
 
 bash
 source venv/bin/activate
-4. Install Dependencies
+### 4. Install Dependencies
 bash
 pip install -r requirements.txt
-5. Configure Environment Variables
+### 5. Configure Environment Variables
 Create a .env file in the project root directory:
 
 env
@@ -50,15 +51,15 @@ DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=yourpassword
 DB_NAME=hostel_db
-6. Initialize Database
+### 6. Initialize Database
 bash
 python init_db.py
-7. Run the Application
+### 7. Run the Application
 bash
 python app.py
 The application will be available at http://localhost:5000
 
-📁 Project Structure
+### 📁 Project Structure
 Code
 hostel-management-system/
 ├── app.py                 # Main application file
@@ -72,27 +73,27 @@ hostel-management-system/
 │   ├── js/
 │   └── images/
 └── README.md           # This file
-🛠️ Technologies Used
+### 🛠️ Technologies Used
 Backend Framework: Python Flask
 Database: MySQL
 Frontend: HTML5, CSS3, JavaScript
 Deployment: Microsoft Azure App Services
 Version Control: Git & GitHub
-🔐 Security Notes
+### 🔐 Security Notes
 Never commit .env file to the repository
 Use strong database passwords in production
 Implement user authentication and authorization
 Validate all user inputs
-📞 Support & Contact
+### 📞 Support & Contact
 For issues and questions, please open a GitHub issue or contact the author.
 
-📝 License
+### 📝 License
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-👨‍💻 Author
+### 👨‍💻 Author
 HARSHP-16
 
-🤝 Contributing
+### 🤝 Contributing
 Contributions are welcome! To contribute:
 
 Fork the repository
