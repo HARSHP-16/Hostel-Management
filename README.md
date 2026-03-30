@@ -1,7 +1,7 @@
 # 🏨 Hostel Management System
 
 🌐 **Live Demo:** https://hostel-management.azurewebsites.net/  
-💻 **GitHub Repository:** https://github.com/HARSHP-16/DBMS-project.git
+💻 **GitHub Repository:** https://github.com/HARSHP-16/Hostel-Management.git
 
 ---
 
@@ -67,7 +67,7 @@ MySQL Database
 
 ### 1️⃣ Clone Repository
 ```bash
-git clone https://github.com/HARSHP-16/DBMS-project.git
+git clone https://github.com/HARSHP-16/Hostel-Management.git
 cd hostel-management-system
 ```
 
