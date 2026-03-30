@@ -1,12 +1,28 @@
 from flask import Flask, render_template, request, session, redirect, url_for, flash
 import os
 from db import get_db_connection
-import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 from auth_utils import login_required, warden_required, student_required
+import pymysql
+import pymysql.cursors
+from urllib.parse import urlparse
+
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
+
+def get_db_connection():
+    url = urlparse(os.getenv("MYSQL_URL"))
+
+    return pymysql.connect(
+        host=url.hostname,
+        user=url.username,
+        password=url.password,
+        database=url.path[1:],
+        port=url.port,
+        ssl={"ssl": {}},  # ✅ REQUIRED FOR AIVEN
+        cursorclass=pymysql.cursors.DictCursor
+    )
 
 @app.route('/')
 def index():
@@ -28,7 +44,7 @@ def register():
         hashed_password = generate_password_hash(password)
         
         conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
         
         try:
             if role == 'student':
@@ -50,7 +66,7 @@ def register():
             conn.commit()
             flash('Registration successful! Please log in.', 'success')
             return redirect(url_for('login'))
-        except mysql.connector.Error as err:
+        except pymysql.Error as err:
             flash(f"Error: {err}", 'error')
         finally:
             cursor.close()
@@ -66,7 +82,7 @@ def login():
         password = request.form.get('password')
         
         conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
         
         query = "SELECT * FROM Student WHERE Email = %s" if role == 'student' else "SELECT * FROM Warden WHERE Email = %s"
         cursor.execute(query, (email,))
@@ -101,7 +117,7 @@ def logout():
 @student_required
 def student_dashboard():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     # Get student room details
     cursor.execute("""
@@ -135,7 +151,7 @@ def student_dashboard():
 @warden_required
 def warden_dashboard():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     # Get high-level stats for warden
     stats = {}
@@ -170,7 +186,7 @@ def warden_dashboard():
 @student_required
 def apply_leave():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     if request.method == 'POST':
         leave_date = request.form.get('leave_date')
@@ -185,7 +201,7 @@ def apply_leave():
             conn.commit()
             flash('Leave request submitted successfully!', 'success')
             return redirect(url_for('apply_leave'))
-        except mysql.connector.Error as err:
+        except pymysql.Error as err:
             flash(f"Database Error: {err}", 'error')
             
     # Fetch historical leaves
@@ -202,7 +218,7 @@ def apply_leave():
 @warden_required
 def manage_leaves():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     # View capturing student info along with leave info, utilizing multiple joins (as expected in a DBMS project)
     query = """
@@ -237,7 +253,7 @@ def update_leave_status(leave_id):
         cursor.execute("UPDATE Student_Leave SET Status = %s WHERE Leave_ID = %s", (status, leave_id))
         conn.commit()
         flash(f'Leave application {status.lower()} applied successfully.', 'success')
-    except mysql.connector.Error as err:
+    except pymysql.Error as err:
         flash(f"Error: {err}", 'error')
     finally:
         cursor.close()
@@ -261,7 +277,7 @@ def add_hostel():
             conn.commit()
             flash('Hostel block added successfully!', 'success')
             return redirect(url_for('add_room'))
-        except mysql.connector.Error as err:
+        except pymysql.Error as err:
             flash(f"Database Error: {err}", 'error')
         finally:
             cursor.close()
@@ -274,7 +290,7 @@ def add_hostel():
 @warden_required
 def manage_rooms():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     # Complex query to get rooms alongside their current occupancy count via the Allocation table
     query = """
@@ -298,7 +314,7 @@ def manage_rooms():
 @warden_required
 def add_room():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     if request.method == 'POST':
         hostel_id = request.form.get('hostel_id')
@@ -314,7 +330,7 @@ def add_room():
             conn.commit()
             flash('Room added successfully!', 'success')
             return redirect(url_for('manage_rooms'))
-        except mysql.connector.Error as err:
+        except pymysql.Error as err:
             flash(f"Database Error: {err}", 'error')
             
     cursor.execute("SELECT * FROM Hostel")
@@ -334,7 +350,7 @@ def add_room():
 @warden_required
 def allocations():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     query = """
         SELECT a.Allocation_ID, a.Allotment_Date,
@@ -358,7 +374,7 @@ def allocations():
 @warden_required
 def allocate_room():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     if request.method == 'POST':
         student_id = request.form.get('student_id')
@@ -369,7 +385,7 @@ def allocate_room():
             conn.commit()
             flash('Student successfully allocated to room!', 'success')
             return redirect(url_for('allocations'))
-        except mysql.connector.Error as err:
+        except pymysql.Error as err:
             flash(f"Database Error: {err}", 'error')
             
     # Complex query #1: Find students who do NOT have an active allocation
@@ -406,7 +422,7 @@ def deallocate_room(allocation_id):
         cursor.execute("DELETE FROM Allocation WHERE Allocation_ID = %s", (allocation_id,))
         conn.commit()
         flash('Student deallocated successfully.', 'success')
-    except mysql.connector.Error as err:
+    except pymysql.Error as err:
         flash(f"Error: {err}", 'error')
     finally:
         cursor.close()
@@ -418,7 +434,7 @@ def deallocate_room(allocation_id):
 @student_required
 def report_issue():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     if request.method == 'POST':
         c_type = request.form.get('complaint_type')
@@ -437,7 +453,7 @@ def report_issue():
             conn.commit()
             flash('Issue reported successfully. The warden has been notified.', 'success')
             return redirect(url_for('report_issue'))
-        except mysql.connector.Error as err:
+        except pymysql.Error as err:
             flash(f"Database Error: {err}", 'error')
             
     cursor.execute("SELECT * FROM Complaint WHERE Student_ID = %s ORDER BY Complaint_Date DESC", (session['user_id'],))
@@ -452,7 +468,7 @@ def report_issue():
 @warden_required
 def manage_complaints():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     query = """
         SELECT c.*, s.Name as Student_Name, r.Room_Number 
@@ -489,7 +505,7 @@ def update_complaint(complaint_id):
         cursor.execute("UPDATE Complaint SET Status = %s WHERE Complaint_ID = %s", (status, complaint_id))
         conn.commit()
         flash('Complaint status updated successfully.', 'success')
-    except mysql.connector.Error as err:
+    except pymysql.Error as err:
         flash(f"Error: {err}", 'error')
     finally:
         cursor.close()
@@ -502,7 +518,7 @@ def update_complaint(complaint_id):
 @student_required
 def student_fees():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     cursor.execute("SELECT * FROM Fees WHERE Student_ID = %s ORDER BY Payment_Date DESC", (session['user_id'],))
     fees = cursor.fetchall()
@@ -521,7 +537,7 @@ def pay_fees(fee_id):
         cursor.execute("UPDATE Fees SET Payment_Status = 'Paid' WHERE Fee_ID = %s AND Student_ID = %s", (fee_id, session['user_id']))
         conn.commit()
         flash('Payment successful! Your dues are cleared.', 'success')
-    except mysql.connector.Error as err:
+    except pymysql.Error as err:
         flash(f"Error processing payment: {err}", 'error')
     finally:
         cursor.close()
@@ -533,7 +549,7 @@ def pay_fees(fee_id):
 @warden_required
 def manage_fees():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     query = """
         SELECT f.*, s.Name as Student_Name, s.Email, s.Course
@@ -553,7 +569,7 @@ def manage_fees():
 @warden_required
 def issue_bill():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     if request.method == 'POST':
         student_id = request.form.get('student_id')
@@ -568,7 +584,7 @@ def issue_bill():
             conn.commit()
             flash('Bill issued successfully!', 'success')
             return redirect(url_for('manage_fees'))
-        except mysql.connector.Error as err:
+        except pymysql.Error as err:
             flash(f"Database Error: {err}", 'error')
             
     cursor.execute("SELECT Student_ID, Name, Course FROM Student ORDER BY Name")
@@ -583,7 +599,7 @@ def issue_bill():
 @student_required
 def student_laundry():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     if request.method == 'POST':
         clothes_count = request.form.get('clothes_count')
@@ -598,7 +614,7 @@ def student_laundry():
             conn.commit()
             flash('Laundry request submitted successfully.', 'success')
             return redirect(url_for('student_laundry'))
-        except mysql.connector.Error as err:
+        except pymysql.Error as err:
             flash(f"Database Error: {err}", 'error')
             
     cursor.execute("SELECT * FROM Laundry WHERE Student_ID = %s ORDER BY Laundry_Date DESC", (session['user_id'],))
@@ -613,7 +629,7 @@ def student_laundry():
 @warden_required
 def manage_laundry():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     query = """
         SELECT l.*, s.Name as Student_Name, r.Room_Number
@@ -645,7 +661,7 @@ def update_laundry(laundry_id):
         cursor.execute("UPDATE Laundry SET Status = %s WHERE Laundry_ID = %s", (status, laundry_id))
         conn.commit()
         flash('Laundry status updated.', 'success')
-    except mysql.connector.Error as err:
+    except pymysql.Error as err:
         flash(f"Error: {err}", 'error')
     finally:
         cursor.close()
@@ -658,7 +674,7 @@ def update_laundry(laundry_id):
 @warden_required
 def manage_maintenance():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
     if request.method == 'POST':
         complaint_id = request.form.get('complaint_id')
@@ -677,7 +693,7 @@ def manage_maintenance():
             conn.commit()
             flash('Maintenance task logged successfully.', 'success')
             return redirect(url_for('manage_maintenance'))
-        except mysql.connector.Error as err:
+        except pymysql.Error as err:
             flash(f"Database Error: {err}", 'error')
             
     # Get lists for the dropdowns
@@ -724,7 +740,7 @@ def update_maintenance(maintenance_id):
         cursor.execute("UPDATE Maintenance SET Status = %s WHERE Maintenance_ID = %s", (status, maintenance_id))
         conn.commit()
         flash('Maintenance status updated.', 'success')
-    except mysql.connector.Error as err:
+    except pymysql.Error as err:
         flash(f"Error: {err}", 'error')
     finally:
         cursor.close()
