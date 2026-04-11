@@ -99,9 +99,7 @@
                 </td>
                 <td>
                     {% if fee.Payment_Status != 'Paid' %}
-                    <form method="POST" action="{{ url_for('pay_fees', fee_id=fee.Fee_ID) }}" onsubmit="return confirm('Confirm payment of ${{ \'%.2f\'|format(fee.Amount) }} using saved payment method?');">
-                        <button type="submit" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Pay Now</button>
-                    </form>
+                    <a href="{{ url_for('confirm_payment', fee_id=fee.Fee_ID) }}" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Pay Now</a>
                     {% else %}
                     <div style="display: flex; gap: 0.5rem; align-items: center;">
                         <span style="color: var(--secondary); font-weight: 500;"><i class="fa-solid fa-check-circle"></i> Settled</span>

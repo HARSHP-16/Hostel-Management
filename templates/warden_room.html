@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+
+{% block title %}Room Details - {{ room.Room_Number }} | HMS{% endblock %}
+
+{% block head %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+    
+    .room-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(135deg, var(--primary), #6366F1);
+        color: white;
+        padding: 2.5rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4);
+    }
+    
+    .room-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .room-meta {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    .room-capacity {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+    }
+    
+    .room-capacity h2 {
+        font-size: 2rem;
+        margin-bottom: 0.2rem;
+    }
+    
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+    
+    @media (max-width: 992px) {
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .section-card {
+        padding: 2rem;
+        border-radius: 12px;
+    }
+    
+    .occupant-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin-bottom: 1rem;
+        transition: transform 0.2s;
+        background: rgba(255,255,255,0.3);
+    }
+    
+    [data-theme='dark'] .occupant-card {
+        background: rgba(15, 23, 42, 0.3);
+    }
+    
+    .occupant-card:hover {
+        transform: translateY(-3px);
+    }
+    
+    .occupant-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--bg-body);
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+    
+    .occupant-info h3 {
+        margin-bottom: 0.2rem;
+        color: var(--dark);
+    }
+    
+    .occupant-info p {
+        font-size: 0.85rem;
+        color: var(--gray);
+        margin: 0;
+    }
+    
+    .complaint-item {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .complaint-item:last-child {
+        border-bottom: none;
+    }
+    
+    .status-badge {
+        padding: 0.2rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+    }
+    
+    .status-Open { background: rgba(239, 68, 68, 0.2); color: #b91c1c; }
+    .status-In { background: rgba(245, 158, 11, 0.2); color: #d97706; }
+    .status-Closed { background: rgba(16, 185, 129, 0.2); color: #059669; }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('manage_rooms') }}" style="color: var(--gray); text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Heatmap
+</a>
+
+<div class="room-header">
+    <div>
+        <h1>Room {{ room.Room_Number }}</h1>
+        <div class="room-meta">
+            <i class="fa-solid fa-building"></i> {{ room.Hostel_Name }} &nbsp;&bull;&nbsp; 
+            <i class="fa-solid fa-bed"></i> {{ room.Room_Type }}
+        </div>
+    </div>
+    <div class="room-capacity">
+        <h2>{{ occupants|length }} / {{ room.Capacity }}</h2>
+        <span style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Occupancy</span>
+    </div>
+</div>
+
+<div class="content-grid">
+    <!-- Occupants Section -->
+    <div class="section-card glass">
+        <h2 style="margin-bottom: 1.5rem; color: var(--dark);"><i class="fa-solid fa-users"></i> Current Occupants</h2>
+        
+        {% if occupants %}
+            {% for student in occupants %}
+            <div class="occupant-card">
+                <div class="occupant-avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div class="occupant-info">
+                    <h3>{{ student.Name }}</h3>
+                    <p><i class="fa-regular fa-envelope"></i> {{ student.Email }}</p>
+                    {% if student.Phone %}
+                    <p><i class="fa-solid fa-phone"></i> {{ student.Phone }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            
+            {% if occupants|length < room.Capacity %}
+            <div style="margin-top: 1.5rem; text-align: center;">
+                <a href="{{ url_for('allocate_room') }}" class="btn btn-outline" style="width: 100%;"><i class="fa-solid fa-plus"></i> Allocate Student</a>
+            </div>
+            {% endif %}
+            
+        {% else %}
+            <div style="text-align: center; padding: 2rem; color: var(--gray);">
+                <i class="fa-solid fa-door-open" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p>This room is currently empty.</p>
+                <a href="{{ url_for('allocate_room') }}" class="btn btn-outline" style="margin-top: 1rem;">Allocate Student</a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Complaints Section -->
+    <div class="section-card glass" style="align-self: start;">
+        <h2 style="margin-bottom: 1.5rem; color: var(--dark);"><i class="fa-solid fa-triangle-exclamation"></i> Room Complaints</h2>
+        
+        {% if complaints %}
+            <div style="background: rgba(255,255,255,0.3); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color);">
+                {% for comp in complaints %}
+                {% set status_cls = 'status-In' if comp.Status == 'In Progress' else 'status-' + comp.Status %}
+                <div class="complaint-item">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <span class="status-badge {{ status_cls }}">{{ comp.Status }}</span>
+                            <h4 style="margin-bottom: 0.2rem;">{{ comp.Complaint_Type }}</h4>
+                            <p style="font-size: 0.85rem; color: var(--gray); margin-bottom: 0.5rem;">{{ comp.Description }}</p>
+                        </div>
+                        <span style="font-size: 0.75rem; color: var(--gray);">{{ comp.Complaint_Date }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div style="margin-top: 1rem; text-align: right;">
+                <a href="{{ url_for('manage_complaints') }}" style="font-size: 0.85rem; color: var(--primary); text-decoration: none;">View All Complaints &rarr;</a>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 2rem; color: var(--gray);">
+                <i class="fa-regular fa-face-smile" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p>No complaints reported for this room.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics & Reports | HMS{% endblock %}
+
+{% block head %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+    
+    .financial-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
+    
+    .fin-card {
+        padding: 2rem;
+        border-radius: 12px;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+    
+    .fin-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+    
+    .fin-details h3 {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--gray);
+        margin-bottom: 0.25rem;
+    }
+    
+    .fin-details p {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--dark);
+    }
+    
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+    }
+    
+    .chart-container {
+        padding: 2rem;
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 400px;
+        justify-content: center;
+    }
+    
+    .chart-container h3 {
+        align-self: flex-start;
+        margin-bottom: 1.5rem;
+        color: var(--dark);
+        font-size: 1.2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('warden_dashboard') }}" style="color: var(--gray); text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+</a>
+
+<div class="page-header">
+    <h1 style="color: var(--dark);">Analytics & Financial Reports</h1>
+    <p class="text-gray">Comprehensive metrics on hostel operations</p>
+</div>
+
+<!-- Financial Summary Section -->
+<h2 style="margin-bottom: 1.5rem; font-size: 1.4rem; color: var(--dark);">Financial Summary</h2>
+<div class="financial-grid">
+    <div class="fin-card glass">
+        <div class="fin-icon" style="background: rgba(16, 185, 129, 0.1); color: #10B981;">
+            <i class="fa-solid fa-money-check-dollar"></i>
+        </div>
+        <div class="fin-details">
+            <h3>Fees Collected</h3>
+            <p>${{ "%.2f"|format(fees_paid) }}</p>
+        </div>
+    </div>
+    
+    <div class="fin-card glass">
+        <div class="fin-icon" style="background: rgba(99, 102, 241, 0.1); color: #6366f1;">
+            <i class="fa-solid fa-jug-detergent"></i>
+        </div>
+        <div class="fin-details">
+            <h3>Laundry Revenue</h3>
+            <p>${{ "%.2f"|format(laundry_rev) }}</p>
+        </div>
+    </div>
+    
+    <div class="fin-card glass">
+        <div class="fin-icon" style="background: rgba(239, 68, 68, 0.1); color: #EF4444;">
+            <i class="fa-solid fa-hammer"></i>
+        </div>
+        <div class="fin-details">
+            <h3>Maintenance Overhead</h3>
+            <p>${{ "%.2f"|format(maint_cost) }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<h2 style="margin-bottom: 1.5rem; font-size: 1.4rem; color: var(--dark);">Operational Metrics</h2>
+<div class="charts-grid">
+    <div class="chart-container glass">
+        <h3>Room Occupancy Rate</h3>
+        <canvas id="occupancyChart"></canvas>
+    </div>
+    
+    <div class="chart-container glass">
+        <h3>Fee Collection Status</h3>
+        <canvas id="feeChart"></canvas>
+    </div>
+    
+    <div class="chart-container glass">
+        <h3>Complaints Pipeline</h3>
+        <canvas id="complaintChart"></canvas>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Shared chart options
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom', labels: {color: 'rgb(107, 114, 128)', padding: 20, font: {family: "'Inter', sans-serif"}} }
+        },
+        cutout: '65%'
+    };
+
+    // Occupancy Chart
+    const ctxOcc = document.getElementById('occupancyChart').getContext('2d');
+    new Chart(ctxOcc, {
+        type: 'doughnut',
+        data: {
+            labels: ['Occupied', 'Vacant'],
+            datasets: [{
+                data: [{{ chart_occupancy.occupied }}, {{ chart_occupancy.vacant }}],
+                backgroundColor: ['#4F46E5', '#10B981'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: commonOptions
+    });
+
+    // Fee Chart
+    const ctxFees = document.getElementById('feeChart').getContext('2d');
+    new Chart(ctxFees, {
+        type: 'doughnut',
+        data: {
+            labels: ['Paid', 'Pending', 'Overdue'],
+            datasets: [{
+                data: [
+                    {{ chart_fees.get('Paid', 0) }},
+                    {{ chart_fees.get('Pending', 0) }},
+                    {{ chart_fees.get('Overdue', 0) }}
+                ],
+                backgroundColor: ['#10B981', '#F59E0B', '#EF4444'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: commonOptions
+    });
+
+    // Complaint Chart
+    const ctxComp = document.getElementById('complaintChart').getContext('2d');
+    new Chart(ctxComp, {
+        type: 'doughnut',
+        data: {
+            labels: ['Open', 'In Progress', 'Closed'],
+            datasets: [{
+                data: [
+                    {{ chart_complaints.get('Open', 0) }},
+                    {{ chart_complaints.get('In Progress', 0) }},
+                    {{ chart_complaints.get('Closed', 0) }}
+                ],
+                backgroundColor: ['#EF4444', '#F59E0B', '#10B981'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: commonOptions
+    });
+});
+</script>
+{% endblock %}

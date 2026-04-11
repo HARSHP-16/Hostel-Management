@@ -197,6 +197,38 @@ def student_dashboard():
     
     return render_template('student_dashboard.html', allocation=allocation, stats=stats)
 
+@app.route('/student/profile', methods=['GET', 'POST'])
+@login_required
+@student_required
+def student_profile():
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    if request.method == 'POST':
+        phone = request.form.get('phone')
+        address = request.form.get('address')
+        bio = request.form.get('bio')
+        emergency_contact = request.form.get('emergency_contact')
+        
+        try:
+            cursor.execute(
+                "UPDATE Student SET Phone=%s, Address=%s, Bio=%s, Emergency_Contact=%s WHERE Student_ID=%s",
+                (phone, address, bio, emergency_contact, session['user_id'])
+            )
+            conn.commit()
+            flash('Profile updated successfully!', 'success')
+            return redirect(url_for('student_profile'))
+        except pymysql.Error as err:
+            flash(f"Database Error: {err}", 'error')
+            
+    cursor.execute("SELECT * FROM Student WHERE Student_ID = %s", (session['user_id'],))
+    student = cursor.fetchone()
+    
+    cursor.close()
+    conn.close()
+    
+    return render_template('student_profile.html', student=student)
+
 @app.route('/warden/dashboard')
 @login_required
 @warden_required
@@ -228,6 +260,17 @@ def warden_dashboard():
     res = cursor.fetchone()
     stats['pending_fees'] = res['total'] if res['total'] else 0.00
     
+    cursor.close()
+    conn.close()
+    return render_template('warden_dashboard.html', stats=stats)
+
+@app.route('/warden/analytics')
+@login_required
+@warden_required
+def warden_analytics():
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
     # --- Chart Data ---
     # Occupancy Data
     cursor.execute("SELECT COUNT(*) as occupied FROM Allocation")
@@ -249,9 +292,79 @@ def warden_dashboard():
     fees_data = cursor.fetchall()
     chart_fees = {row['Payment_Status']: row['count'] for row in fees_data}
     
+    # Additional aggregate stats for Analytics
+    cursor.execute("SELECT SUM(Cost) as total FROM Maintenance WHERE Status = 'Completed'")
+    r1 = cursor.fetchone()
+    maint_cost = r1.get('total') or 0.00 if r1 else 0.00
+    
+    cursor.execute("SELECT SUM(Charges) as total FROM Laundry WHERE Status = 'Completed'")
+    r2 = cursor.fetchone()
+    laundry_rev = r2.get('total') or 0.00 if r2 else 0.00
+    
+    cursor.execute("SELECT SUM(Amount) as total FROM Fees WHERE Payment_Status = 'Paid'")
+    r3 = cursor.fetchone()
+    fees_paid = r3.get('total') or 0.00 if r3 else 0.00
+    
     cursor.close()
     conn.close()
-    return render_template('warden_dashboard.html', stats=stats, chart_occupancy=chart_occupancy, chart_complaints=chart_complaints, chart_fees=chart_fees)
+    
+    return render_template('warden_analytics.html', 
+                          chart_occupancy=chart_occupancy, 
+                          chart_complaints=chart_complaints, 
+                          chart_fees=chart_fees,
+                          maint_cost=maint_cost,
+                          laundry_rev=laundry_rev,
+                          fees_paid=fees_paid)
+
+@app.route('/warden/students')
+@login_required
+@warden_required
+def warden_students():
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    query = """
+    SELECT s.Student_ID, s.Name, s.Email, s.Phone, s.Course, 
+           r.Room_Number, h.Hostel_Name
+    FROM Student s
+    LEFT JOIN Allocation a ON s.Student_ID = a.Student_ID
+    LEFT JOIN Room r ON a.Room_ID = r.Room_ID
+    LEFT JOIN Hostel h ON r.Hostel_ID = h.Hostel_ID
+    ORDER BY s.Name ASC
+    """
+    cursor.execute(query)
+    students = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+    return render_template('warden_students.html', students=students)
+
+@app.route('/warden/room/<int:room_id>')
+@login_required
+@warden_required
+def warden_room(room_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    # Room info
+    cursor.execute("SELECT r.*, h.Hostel_Name FROM Room r JOIN Hostel h ON r.Hostel_ID = h.Hostel_ID WHERE Room_ID = %s", (room_id,))
+    room = cursor.fetchone()
+    
+    if not room:
+        flash('Room not found.', 'error')
+        return redirect(url_for('manage_rooms'))
+        
+    # Occupants
+    cursor.execute("SELECT s.Student_ID, s.Name, s.Email, s.Phone FROM Allocation a JOIN Student s ON a.Student_ID = s.Student_ID WHERE a.Room_ID = %s", (room_id,))
+    occupants = cursor.fetchall()
+    
+    # Complaints
+    cursor.execute("SELECT * FROM Complaint WHERE Room_ID = %s ORDER BY Complaint_Date DESC LIMIT 10", (room_id,))
+    complaints = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+    return render_template('warden_room.html', room=room, occupants=occupants, complaints=complaints)
 
 @app.route('/student/apply_leave', methods=['GET', 'POST'])
 @login_required
@@ -612,6 +725,30 @@ def student_fees():
     cursor.close()
     conn.close()
     return render_template('student_fees.html', fees=fees)
+
+@app.route('/student/pay_fees/confirm/<int:fee_id>', methods=['GET'])
+@login_required
+@student_required
+def confirm_payment(fee_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    try:
+        cursor.execute("SELECT f.*, s.Name FROM Fees f JOIN Student s ON f.Student_ID = s.Student_ID WHERE Fee_ID = %s AND f.Student_ID = %s", (fee_id, session['user_id']))
+        fee = cursor.fetchone()
+        if not fee:
+            flash('Fee record not found.', 'error')
+            return redirect(url_for('student_fees'))
+        if fee['Payment_Status'] == 'Paid':
+            flash('This fee is already paid.', 'info')
+            return redirect(url_for('student_fees'))
+    except pymysql.Error as err:
+        flash(f"Error fetching fee: {err}", 'error')
+        return redirect(url_for('student_fees'))
+    finally:
+        cursor.close()
+        conn.close()
+    
+    return render_template('confirm_payment.html', fee=fee)
 
 @app.route('/student/pay_fees/<int:fee_id>', methods=['POST'])
 @login_required

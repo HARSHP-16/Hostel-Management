@@ -41,11 +41,41 @@
         border-radius: 20px;
         font-size: 0.85rem;
         font-weight: 600;
+        display: inline-block;
+        white-space: nowrap;
     }
     
     .badge-pending { background: rgba(245, 158, 11, 0.2); color: #d97706; }
     .badge-progress { background: rgba(59, 130, 246, 0.2); color: #2563eb; }
     .badge-completed { background: rgba(16, 185, 129, 0.2); color: #059669; }
+    
+    /* Interactive Status Dropdown */
+    .status-select {
+        appearance: none;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid var(--border-color);
+        padding: 0.3rem 1.8rem 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        outline: none;
+        color: var(--text-main);
+        background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236B7280%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.7rem top 50%;
+        background-size: 0.65rem auto;
+        transition: all 0.2s;
+    }
+    
+    .status-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+    }
+    
+    [data-theme='dark'] .status-select {
+        background-color: rgba(15, 23, 42, 0.5);
+    }
 </style>
 {% endblock %}
 
@@ -57,11 +87,11 @@
 
 <div class="maintenance-grid">
     <div class="form-container glass" style="align-self: start;">
-        <h2 style="margin-bottom: 1.5rem;">Log Maintenance</h2>
+        <h2 style="margin-bottom: 1.5rem; color: var(--dark); font-weight: 700;">Log Maintenance</h2>
         <form method="POST">
-            <div class="form-group">
-                <label for="hostel_id">Hostel Block *</label>
-                <select id="hostel_id" name="hostel_id" class="form-control" required>
+            <div class="form-group" style="background: rgba(255,255,255,0.4); padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border: 1px solid var(--border-color);">
+                <label for="hostel_id" style="font-weight: 600; color: var(--primary);"><i class="fa-solid fa-building"></i> Hostel Block *</label>
+                <select id="hostel_id" name="hostel_id" class="form-control" style="margin-top: 0.5rem; border: none; background: transparent; border-bottom: 2px solid rgba(0,0,0,0.1); border-radius: 0; padding-left: 0;" required>
                     <option value="">Select Hostel...</option>
                     {% for h in hostels %}
                     <option value="{{ h.Hostel_ID }}">{{ h.Hostel_Name }}</option>
@@ -69,49 +99,49 @@
                 </select>
             </div>
             
-            <div class="form-group">
-                <label for="complaint_id">Related Complaint (Optional)</label>
-                <select id="complaint_id" name="complaint_id" class="form-control">
-                    <option value="">None (General Maintenance)</option>
+            <div class="form-group" style="background: rgba(255,255,255,0.4); padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border: 1px solid var(--border-color);">
+                <label for="complaint_id" style="font-weight: 600; color: var(--warning);"><i class="fa-solid fa-triangle-exclamation"></i> Related Complaint</label>
+                <select id="complaint_id" name="complaint_id" class="form-control" style="margin-top: 0.5rem; border: none; background: transparent; border-bottom: 2px solid rgba(0,0,0,0.1); border-radius: 0; padding-left: 0;">
+                    <option value="">Optional (General Maintenance)</option>
                     {% for c in complaints %}
                     <option value="{{ c.Complaint_ID }}">
                         #{{ c.Complaint_ID }} - {{ c.Complaint_Type }} 
-                        {% if c.Room_ID %} (Room ID: {{ c.Room_ID }}) {% endif %}
+                        {% if c.Room_ID %} (Room: {{ c.Room_ID }}) {% endif %}
                     </option>
                     {% endfor %}
                 </select>
             </div>
             
-            <div class="form-group">
-                <label for="work_type">Work Type *</label>
-                <input type="text" id="work_type" name="work_type" class="form-control" required placeholder="e.g. Plumbing, Electrical">
+            <div class="form-group" style="background: rgba(255,255,255,0.4); padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border: 1px solid var(--border-color);">
+                <label for="work_type" style="font-weight: 600; color: var(--dark);"><i class="fa-solid fa-wrench"></i> Work Type *</label>
+                <input type="text" id="work_type" name="work_type" class="form-control" style="margin-top: 0.5rem; border: none; background: transparent; border-bottom: 2px solid rgba(0,0,0,0.1); border-radius: 0; padding-left: 0;" required placeholder="e.g. Plumbing, Electrical">
             </div>
             
-            <div class="form-group">
-                <label for="cost">Estimated Cost ($)</label>
-                <input type="number" id="cost" name="cost" class="form-control" step="0.01" min="0" placeholder="0.00">
+            <div class="form-group" style="background: rgba(255,255,255,0.4); padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border: 1px solid var(--border-color);">
+                <label for="cost" style="font-weight: 600; color: var(--secondary);"><i class="fa-solid fa-dollar-sign"></i> Estimated Cost</label>
+                <input type="number" id="cost" name="cost" class="form-control" style="margin-top: 0.5rem; border: none; background: transparent; border-bottom: 2px solid rgba(0,0,0,0.1); border-radius: 0; padding-left: 0;" step="0.01" min="0" placeholder="0.00">
             </div>
             
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
-                <i class="fa-solid fa-plus"></i> Add Record
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);">
+                <i class="fa-solid fa-plus-circle"></i> Log Maintenance Record
             </button>
         </form>
     </div>
     
     <div class="table-container glass">
-        <h2 style="margin-bottom: 1.5rem;">Maintenance Tasks</h2>
+        <h2 style="margin-bottom: 1.5rem; color: var(--dark); font-weight: 700;">Maintenance Tasks</h2>
         
         {% if tasks %}
         <div style="overflow-x: auto;">
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Location</th>
-                        <th>Work Type</th>
-                        <th>Cost</th>
-                        <th>Status</th>
-                        <th>Action</th>
+                        <th style="padding-bottom: 1rem;">Date</th>
+                        <th style="padding-bottom: 1rem;">Location</th>
+                        <th style="padding-bottom: 1rem;">Work Type</th>
+                        <th style="padding-bottom: 1rem;">Cost</th>
+                        <th style="padding-bottom: 1rem;">Status</th>
+                        <th style="padding-bottom: 1rem;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -140,8 +170,8 @@
                         </td>
                         <td>
                             {% if task.Status != 'Completed' %}
-                            <form action="{{ url_for('update_maintenance', maintenance_id=task.Maintenance_ID) }}" method="POST" style="display:flex; gap:0.5rem;">
-                                <select name="status" class="form-control" style="padding: 0.3rem; font-size: 0.85rem; width: auto;" onchange="this.form.submit()">
+                            <form action="{{ url_for('update_maintenance', maintenance_id=task.Maintenance_ID) }}" method="POST">
+                                <select name="status" class="status-select" onchange="this.form.submit()">
                                     <option value="Pending" {% if task.Status == 'Pending' %}selected{% endif %}>Pending</option>
                                     <option value="In Progress" {% if task.Status == 'In Progress' %}selected{% endif %}>In Progress</option>
                                     <option value="Completed">Completed</option>

@@ -39,6 +39,59 @@
     
     .badge-pending { background: rgba(245, 158, 11, 0.2); color: #d97706; }
     .badge-completed { background: rgba(16, 185, 129, 0.2); color: #059669; }
+
+    /* Stepper UI */
+    .stepper-ui {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        max-width: 250px;
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    [data-theme='dark'] .stepper-ui {
+        background: rgba(15, 23, 42, 0.6);
+    }
+    
+    .stepper-btn {
+        background: transparent;
+        border: none;
+        color: var(--primary);
+        font-size: 1.5rem;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    
+    .stepper-btn:hover {
+        background: rgba(79, 70, 229, 0.1);
+    }
+    
+    .stepper-input {
+        flex: 1;
+        width: 100%;
+        text-align: center;
+        border: none;
+        background: transparent;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-main);
+        outline: none;
+        -moz-appearance: textfield;
+    }
+    
+    .stepper-input::-webkit-outer-spin-button,
+    .stepper-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
 </style>
 {% endblock %}
 
@@ -54,8 +107,16 @@
         <form method="POST">
             <div class="form-group">
                 <label for="clothes_count">Number of Clothes</label>
-                <input type="number" id="clothes_count" name="clothes_count" class="form-control" min="1" required placeholder="e.g. 5">
-                <small class="text-gray" style="display: block; margin-top: 0.5rem;"><i class="fa-solid fa-circle-info"></i> Charges: $20 per cloth</small>
+                <div class="stepper-ui">
+                    <button type="button" class="stepper-btn" onclick="decrementClothes()">
+                        <i class="fa-solid fa-minus"></i>
+                    </button>
+                    <input type="number" id="clothes_count" name="clothes_count" class="stepper-input" min="1" value="1" required>
+                    <button type="button" class="stepper-btn" onclick="incrementClothes()">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+                <small class="text-gray" style="display: block; margin-top: 0.5rem;"><i class="fa-solid fa-circle-info"></i> Charges: $20 per cloth. Total: $<span id="total_cost">20</span></small>
             </div>
             
             <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
@@ -104,4 +165,32 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+    const countInput = document.getElementById('clothes_count');
+    const totalCost = document.getElementById('total_cost');
+    const costPerCloth = 20;
+
+    function updateCost() {
+        let val = parseInt(countInput.value) || 0;
+        if (val < 1) val = 1;
+        totalCost.textContent = val * costPerCloth;
+    }
+
+    function incrementClothes() {
+        let val = parseInt(countInput.value) || 0;
+        countInput.value = val + 1;
+        updateCost();
+    }
+
+    function decrementClothes() {
+        let val = parseInt(countInput.value) || 0;
+        if (val > 1) {
+            countInput.value = val - 1;
+            updateCost();
+        }
+    }
+    
+    countInput.addEventListener('input', updateCost);
+</script>
 {% endblock %}

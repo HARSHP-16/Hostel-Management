@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirm Payment | HMS{% endblock %}
+
+{% block head %}
+<style>
+    .checkout-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 2.5rem;
+        border-radius: 16px;
+    }
+    
+    .checkout-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .checkout-header i {
+        font-size: 3rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+    
+    .checkout-header h1 {
+        color: var(--dark);
+        font-size: 1.8rem;
+    }
+    
+    .summary-card {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    [data-theme='dark'] .summary-card {
+        background: rgba(15, 23, 42, 0.6);
+    }
+    
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem 0;
+        border-bottom: 1px dashed var(--border-color);
+    }
+    
+    .summary-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    
+    .summary-row span.label {
+        color: var(--gray);
+        font-weight: 500;
+    }
+    
+    .summary-row span.val {
+        color: var(--dark);
+        font-weight: 600;
+        text-align: right;
+    }
+    
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 2px solid var(--border-color);
+    }
+    
+    .total-row span.label {
+        font-size: 1.2rem;
+        color: var(--dark);
+        font-weight: 700;
+    }
+    
+    .total-row span.val {
+        font-size: 1.8rem;
+        color: var(--primary);
+        font-weight: 800;
+    }
+    
+    .payment-action {
+        text-align: center;
+    }
+    
+    .payment-action p.info {
+        font-size: 0.85rem;
+        color: var(--gray);
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('student_fees') }}" style="color: var(--gray); text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Fees
+</a>
+
+<div class="checkout-container glass">
+    <div class="checkout-header">
+        <i class="fa-solid fa-credit-card"></i>
+        <h1>Payment Summary</h1>
+        <p class="text-gray">Please review your fee details before confirming payment.</p>
+    </div>
+    
+    <div class="summary-card">
+        <div class="summary-row">
+            <span class="label">Invoice No</span>
+            <span class="val">#H-FEE-{{ fee.Fee_ID }}</span>
+        </div>
+        <div class="summary-row">
+            <span class="label">Student Name</span>
+            <span class="val">{{ fee.Name }}</span>
+        </div>
+        <div class="summary-row">
+            <span class="label">Due Date</span>
+            <span class="val">{{ fee.Payment_Date or 'Immediate' }}</span>
+        </div>
+        <div class="summary-row">
+            <span class="label">Description</span>
+            <span class="val">Hostel & Mess Charges</span>
+        </div>
+        
+        <div class="total-row">
+            <span class="label">Amount Due</span>
+            <span class="val">${{ "%.2f"|format(fee.Amount) }}</span>
+        </div>
+    </div>
+    
+    <div class="payment-action">
+        <form method="POST" action="{{ url_for('pay_fees', fee_id=fee.Fee_ID) }}">
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem; border-radius: 12px;">
+                <i class="fa-solid fa-lock" style="margin-right: 0.5rem;"></i> Confirm & Pay ${{ "%.2f"|format(fee.Amount) }}
+            </button>
+            <p class="info"><i class="fa-solid fa-shield-halved"></i> Secure checkout. By confirming, the amount will be processed automatically.</p>
+        </form>
+    </div>
+</div>
+{% endblock %}

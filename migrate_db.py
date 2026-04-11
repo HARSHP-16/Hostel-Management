@@ -1,5 +1,9 @@
 from db import get_db_connection
 import pymysql
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def run_migrations():
     print("Connecting to database...")

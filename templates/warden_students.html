@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}All Students | HMS{% endblock %}
+
+{% block head %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .table-container {
+        padding: 2rem;
+        border-radius: 12px;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .data-table th, .data-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .search-box {
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-card);
+        color: var(--text-main);
+        width: 300px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('warden_dashboard') }}" style="color: var(--gray); text-decoration: none; display: inline-block; margin-bottom: 1rem;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+</a>
+
+<div class="page-header">
+    <div>
+        <h1 style="color: var(--dark);">Registered Students</h1>
+        <p class="text-gray">View comprehensive details of all students</p>
+    </div>
+    <div>
+        <input type="text" id="searchInput" class="search-box" placeholder="Search by name, ID, or room...">
+    </div>
+</div>
+
+<div class="table-container glass">
+    <div style="overflow-x: auto;">
+        <table class="data-table" id="studentsTable">
+            <thead>
+                <tr>
+                    <th>Student ID</th>
+                    <th>Name</th>
+                    <th>Course</th>
+                    <th>Contact Info</th>
+                    <th>Room Allocation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>#STU-{{ student.Student_ID }}</td>
+                    <td style="font-weight: 600; color: var(--dark);">{{ student.Name }}</td>
+                    <td>{{ student.Course }}</td>
+                    <td>
+                        <span style="display: block; font-size: 0.85rem;"><i class="fa-regular fa-envelope"></i> {{ student.Email }}</span>
+                        {% if student.Phone %}
+                        <span style="display: block; font-size: 0.85rem; color: var(--gray);"><i class="fa-solid fa-phone"></i> {{ student.Phone }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if student.Room_Number %}
+                            <span class="text-dark" style="font-weight: 500;">{{ student.Room_Number }}</span>
+                            <br><small class="text-gray">{{ student.Hostel_Name }}</small>
+                        {% else %}
+                            <span style="color: var(--warning); font-size: 0.85rem;"><i class="fa-solid fa-triangle-exclamation"></i> Not Allocated</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 2rem; color: var(--gray);">No students found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('searchInput');
+    const tableRows = document.querySelectorAll('#studentsTable tbody tr');
+    
+    searchInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        tableRows.forEach(row => {
+            const textContent = row.textContent.toLowerCase();
+            if (textContent.includes(term)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

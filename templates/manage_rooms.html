@@ -84,7 +84,7 @@
                 <span style="font-size: 1.5rem; font-weight: bold;">{{ room.Occupied_Count }}</span>
                 <span class="text-gray" style="font-size: 0.9rem;">/ {{ room.Capacity }}</span>
             </div>
-            <a href="#" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Details</a>
+            <a href="{{ url_for('warden_room', room_id=room.Room_ID) }}" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Details</a>
         </div>
     </div>
     {% else %}
