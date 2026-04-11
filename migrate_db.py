@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 from db import get_db_connection
 import pymysql
 import os

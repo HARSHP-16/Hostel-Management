@@ -5,9 +5,9 @@ import io
 from datetime import timedelta
 
 from flask import Flask, render_template, request, session, redirect, url_for, flash, send_file
-from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
 import pymysql
 import pymysql.cursors
@@ -113,9 +113,8 @@ def inject_notifications():
     return dict(notifications=[], unread_notif_count=0)
 
 
-# ─── Notification endpoint (exempted from CSRF — low-impact read flag toggle) ─
-@app.route("/notifications/read/<int:notif_id>", methods=["POST"])
-@csrf.exempt
+# ─── Notification endpoint — uses GET so that CSRF is not required ─────────────
+@app.route("/notifications/read/<int:notif_id>", methods=["GET"])
 @login_required
 def mark_notification_read(notif_id):
     conn = get_db_connection()
@@ -204,9 +203,12 @@ def login():
     return render_template("login.html")
 
 
-@app.route("/logout", methods=["POST"])
+@app.route("/logout", methods=["GET", "POST"])
 @login_required
 def logout():
+    # GET requests (e.g. direct navigation or old bookmarks) redirect without logging out.
+    if request.method == "GET":
+        return redirect(url_for("index"))
     session.clear()
     flash("You have been logged out.", "info")
     return redirect(url_for("index"))
