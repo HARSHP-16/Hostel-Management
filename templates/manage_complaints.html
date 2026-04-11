@@ -110,6 +110,7 @@
                 </td>
                 <td>
                     <form method="POST" action="{{ url_for('update_complaint', complaint_id=complaint.Complaint_ID) }}" style="display: flex; gap: 0.5rem; align-items: center;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <select name="status" class="status-select">
                             <option value="Open" {% if complaint.Status == 'Open' %}selected{% endif %}>Open</option>
                             <option value="In Progress" {% if complaint.Status == 'In Progress' %}selected{% endif %}>In Progress</option>

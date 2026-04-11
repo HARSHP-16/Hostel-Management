@@ -96,6 +96,7 @@
     </div>
     
     <form method="POST" action="{{ url_for('report_issue') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
             <label class="form-label" for="complaint_type">Issue Type</label>
             <select id="complaint_type" name="complaint_type" class="form-control" required>

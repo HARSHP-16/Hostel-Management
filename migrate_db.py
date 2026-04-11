@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 from db import get_db_connection
 import pymysql
 import os
@@ -52,16 +56,25 @@ def run_migrations():
                 Password VARCHAR(255) NOT NULL
             )
         """)
-        
-        # Check if admin exists
-        cursor.execute("SELECT * FROM Admin WHERE Email = 'admin@hms.com'")
-        if not cursor.fetchone():
-            from werkzeug.security import generate_password_hash
-            hashed_pwd = generate_password_hash('admin784195377')
-            cursor.execute("INSERT INTO Admin (Email, Password) VALUES (%s, %s)", ('admin@hms.com', hashed_pwd))
-            print("Default admin seeded.")
+
+        # Seed default admin from environment variables only — never from hardcoded values.
+        admin_email = os.environ.get("ADMIN_EMAIL")
+        admin_password = os.environ.get("ADMIN_PASSWORD")
+        if admin_email and admin_password:
+            cursor.execute("SELECT * FROM Admin WHERE Email = %s", (admin_email,))
+            if not cursor.fetchone():
+                from werkzeug.security import generate_password_hash
+                hashed_pwd = generate_password_hash(admin_password)
+                cursor.execute(
+                    "INSERT INTO Admin (Email, Password) VALUES (%s, %s)",
+                    (admin_email, hashed_pwd),
+                )
+                print("Default admin seeded from environment variables.")
+            else:
+                print("Admin already exists.")
         else:
-            print("Admin already exists.")
+            print("ADMIN_EMAIL / ADMIN_PASSWORD not set — skipping admin seed.")
+            print("Set both environment variables and re-run migrate_db.py to create the admin account.")
             
         conn.commit()
         print("Migrations ran successfully.")

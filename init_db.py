@@ -14,8 +14,7 @@ def init_database():
             user=os.environ.get('DB_USER'),
             password=os.environ.get('DB_PASS'),
             database=os.environ.get('DB_NAME'),
-            ssl_verify_identity=False,
-            ssl_ca=''
+            ssl_verify_identity=True
         )
         cursor = conn.cursor()
         

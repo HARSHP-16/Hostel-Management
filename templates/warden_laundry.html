@@ -86,6 +86,7 @@
                 <td>
                     {% if req.Status == 'Pending' %}
                     <form action="{{ url_for('update_laundry', laundry_id=req.Laundry_ID) }}" method="POST" style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="status" value="Completed">
                         <button type="submit" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
                             <i class="fa-solid fa-check"></i> Mark Done

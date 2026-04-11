@@ -6,9 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Hostel Management System{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
     <script src="{{ url_for('static', filename='theme.js') }}" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" crossorigin="anonymous" defer></script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     {% block head %}{% endblock %}
 </head>
 
@@ -57,7 +58,10 @@
                     <i class="fa-solid fa-moon"></i>
                 </button>
 
-                <a href="{{ url_for('logout') }}" class="btn btn-outline nav-logout">Logout</a>
+                <form method="POST" action="{{ url_for('logout') }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline nav-logout">Logout</button>
+                </form>
                 {% else %}
                 <button id="theme-toggle" class="theme-toggle theme-toggle-guest" title="Toggle Theme">
                     <i class="fa-solid fa-moon"></i>

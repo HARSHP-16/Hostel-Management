@@ -170,6 +170,7 @@
     <div class="form-container glass">
         <h2 style="margin-bottom: 1.5rem; color: var(--dark);">Update Details</h2>
         <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="phone">Phone Number</label>
                 <input type="text" id="phone" name="phone" class="form-control" value="{{ student.Phone or '' }}" placeholder="e.g. +1 234 567 8900">

@@ -96,6 +96,7 @@
     <div class="form-container glass" style="align-self: start;">
         <h2 style="margin-bottom: 1.5rem; color: var(--dark); font-weight: 700;">Log Maintenance</h2>
         <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group" style="background: rgba(255,255,255,0.4); padding: 1rem; border-radius: 10px; margin-bottom: 1rem; border: 1px solid var(--border-color);">
                 <label for="hostel_id" style="font-weight: 600; color: var(--primary);"><i class="fa-solid fa-building"></i> Hostel Block *</label>
                 <select id="hostel_id" name="hostel_id" class="form-control" style="margin-top: 0.5rem; border: none; background: transparent; border-bottom: 2px solid rgba(0,0,0,0.1); border-radius: 0; padding-left: 0;" required>
@@ -178,6 +179,7 @@
                         <td>
                             {% if task.Status != 'Completed' %}
                             <form action="{{ url_for('update_maintenance', maintenance_id=task.Maintenance_ID) }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <select name="status" class="status-select" onchange="this.form.submit()">
                                     <option value="Pending" {% if task.Status == 'Pending' %}selected{% endif %}>Pending</option>
                                     <option value="In Progress" {% if task.Status == 'In Progress' %}selected{% endif %}>In Progress</option>

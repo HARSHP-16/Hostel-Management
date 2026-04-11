@@ -117,6 +117,7 @@
     <div class="form-container glass">
         <h2 style="margin-bottom: 1.5rem;">New Request</h2>
         <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="clothes_count">Number of Clothes</label>
                 <div class="stepper-ui">
