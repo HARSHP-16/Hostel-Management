@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard | HMS{% endblock %}
+
+{% block head %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+    
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        transition: transform 0.2s;
+        border-top: 4px solid var(--primary);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin: 0.5rem 0;
+    }
+    
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+    
+    @media (max-width: 992px) {
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .page-header h1 { font-size: 1.8rem; }
+        .stat-value { font-size: 2rem; }
+        .card-header { flex-direction: column; gap: 1rem; align-items: flex-start; }
+        .card-header a { width: 100%; }
+        .list-item { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+        .list-item > div:last-child { text-align: left !important; width: 100%; }
+    }
+    
+    .card {
+        padding: 1.5rem;
+        border-radius: 12px;
+    }
+    
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid rgba(0,0,0,0.05);
+        padding-bottom: 1rem;
+    }
+    
+    .hostel-list, .warden-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .list-item {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid var(--border-color);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    [data-theme='dark'] .list-item {
+        background: rgba(15, 23, 42, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Administrator Settings</h1>
+    <p class="text-gray">Manage Hostels and Wardens securely.</p>
+</div>
+
+<div class="stats-container">
+    <div class="stat-card glass">
+        <i class="fa-solid fa-users" style="font-size: 2rem; color: var(--gray);"></i>
+        <div class="stat-value">{{ stats.wardens }}</div>
+        <div class="text-gray">Total Wardens</div>
+    </div>
+    <div class="stat-card glass">
+        <i class="fa-solid fa-building" style="font-size: 2rem; color: var(--gray);"></i>
+        <div class="stat-value">{{ stats.hostels }}</div>
+        <div class="text-gray">Hostel Blocks</div>
+    </div>
+    <div class="stat-card glass">
+        <i class="fa-solid fa-door-open" style="font-size: 2rem; color: var(--gray);"></i>
+        <div class="stat-value">{{ stats.rooms_total }}</div>
+        <div class="text-gray">Rooms Managed</div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card glass">
+        <div class="card-header">
+            <h2 style="font-size: 1.5rem;"><i class="fa-solid fa-building"></i> Hostels</h2>
+            <a href="{{ url_for('add_hostel') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Hostel</a>
+        </div>
+        <ul class="hostel-list">
+            {% for h in hostels %}
+            <li class="list-item">
+                <div>
+                    <strong>{{ h.Hostel_Name }}</strong> ({{ h.Type }})<br>
+                    <small class="text-gray">{{ h.Location }}</small>
+                </div>
+                <div class="text-gray" style="text-align: right;">
+                    <i class="fa-solid fa-door-closed"></i> {{ h.Room_Count }} Rooms
+                </div>
+            </li>
+            {% else %}
+            <p class="text-gray text-center" style="padding: 2rem;">No hostels available.</p>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    <div class="card glass">
+        <div class="card-header">
+            <h2 style="font-size: 1.5rem;"><i class="fa-solid fa-user-tie"></i> Wardens</h2>
+            <a href="{{ url_for('admin_add_warden') }}" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> New Warden</a>
+        </div>
+        <ul class="warden-list">
+            {% for w in wardens %}
+            <li class="list-item">
+                <div>
+                    <strong>{{ w.Name }}</strong><br>
+                    <small class="text-gray">{{ w.Email }}</small>
+                </div>
+                <div>
+                    <span style="background: var(--primary); color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.8rem;">
+                        {{ w.Hostel_Name if w.Hostel_Name else 'Unassigned' }}
+                    </span>
+                </div>
+            </li>
+            {% else %}
+            <p class="text-gray text-center" style="padding: 2rem;">No wardens available.</p>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

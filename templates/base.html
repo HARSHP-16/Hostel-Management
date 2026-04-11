@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,39 +11,43 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     {% block head %}{% endblock %}
 </head>
+
 <body>
     <nav class="navbar">
         <a href="{{ url_for('index') }}" class="nav-brand">
-            <i class="fa-solid fa-building-shield"></i> HMS PRO
+            <i class="fa-solid fa-building-shield"></i> Hostel Management
         </a>
-        <div class="nav-links">
-            {% if session.get('user_id') %}
+        <div class="nav-right">
+            <div class="nav-links" id="navLinks">
+                {% if session.get('user_id') %}
                 {% if session.get('role') == 'warden' %}
-                    <a href="{{ url_for('warden_dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('warden_dashboard') }}">Dashboard</a>
+                {% elif session.get('role') == 'admin' %}
+                <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
                 {% else %}
-                    <a href="{{ url_for('student_dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('student_dashboard') }}">Dashboard</a>
                 {% endif %}
-                
+
                 <!-- Notification Bell -->
-                <div style="position: relative; margin-left: 1.5rem;">
-                    <button id="notif-btn" class="theme-toggle" style="margin-left: 0;">
+                <div class="notif-wrapper">
+                    <button id="notif-btn" class="theme-toggle">
                         <i class="fa-solid fa-bell"></i>
                         {% if unread_notif_count and unread_notif_count > 0 %}
-                            <span style="position: absolute; top: 0px; right: 0px; background: var(--danger); width: 8px; height: 8px; border-radius: 50%; border: 2px solid var(--nav-bg);"></span>
+                        <span class="notif-badge"></span>
                         {% endif %}
                     </button>
                     <div id="notif-dropdown">
                         <div class="notif-header">Notifications</div>
                         <div id="notif-list">
                             {% if notifications %}
-                                {% for notif in notifications %}
-                                    <div class="notif-item">
-                                        <span class="notif-msg">{{ notif.Message }}</span>
-                                        <span class="notif-time">{{ notif.Timestamp.strftime('%d %b, %H:%M') if notif.Timestamp else '' }}</span>
-                                    </div>
-                                {% endfor %}
+                            {% for notif in notifications %}
+                            <div class="notif-item">
+                                <span class="notif-msg">{{ notif.Message }}</span>
+                                <span class="notif-time">{{ notif.Timestamp.strftime('%d %b, %H:%M') if notif.Timestamp else '' }}</span>
+                            </div>
+                            {% endfor %}
                             {% else %}
-                                <div class="notif-empty">No new notifications</div>
+                            <div class="notif-empty">No new notifications</div>
                             {% endif %}
                         </div>
                     </div>
@@ -51,35 +56,62 @@
                 <button id="theme-toggle" class="theme-toggle" title="Toggle Theme">
                     <i class="fa-solid fa-moon"></i>
                 </button>
-                
-                <a href="{{ url_for('logout') }}" class="btn btn-outline" style="margin-left: 1.5rem;">Logout</a>
-            {% else %}
-                <button id="theme-toggle" class="theme-toggle" title="Toggle Theme" style="margin-right: 1.5rem;">
+
+                <a href="{{ url_for('logout') }}" class="btn btn-outline nav-logout">Logout</a>
+                {% else %}
+                <button id="theme-toggle" class="theme-toggle theme-toggle-guest" title="Toggle Theme">
                     <i class="fa-solid fa-moon"></i>
                 </button>
-                <a href="{{ url_for('login') }}">Login</a>
-                <a href="{{ url_for('register') }}" class="btn btn-primary" style="margin-left: 1.5rem;">Register</a>
-            {% endif %}
+                <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
+                {% endif %}
+            </div>
+
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <i class="fa-solid fa-bars"></i>
+            </button>
         </div>
     </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggle = document.getElementById('mobileMenuToggle');
+            const navLinks = document.getElementById('navLinks');
+            
+            if (menuToggle && navLinks) {
+                menuToggle.addEventListener('click', () => {
+                    navLinks.classList.toggle('active');
+                    const icon = menuToggle.querySelector('i');
+                    if (navLinks.classList.contains('active')) {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-xmark');
+                    } else {
+                        icon.classList.remove('fa-xmark');
+                        icon.classList.add('fa-bars');
+                    }
+                });
+            }
+        });
+    </script>
 
     <main class="container">
         <!-- Flash messages block -->
         {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">
-                            <i class="fa-solid {% if category == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i>
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                <i
+                    class="fa-solid {% if category == 'success' %}fa-circle-check{% else %}fa-circle-exclamation{% endif %}"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
         {% endwith %}
 
         <!-- Main content block -->
         {% block content %}{% endblock %}
     </main>
 </body>
+
 </html>

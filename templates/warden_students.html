@@ -35,6 +35,17 @@
         color: var(--text-main);
         width: 300px;
     }
+    @media (max-width: 768px) {
+        .page-header { flex-direction: column; align-items: stretch; gap: 1rem; }
+        .page-header h1 { font-size: 1.5rem; }
+        .search-box { width: 100%; }
+        .page-header div:last-child { flex-direction: column; }
+        .page-header a { width: 100%; }
+        
+        /* Table responsiveness utility */
+        .table-container { padding: 1rem; margin-top: 1rem; }
+        .data-table th, .data-table td { padding: 0.75rem 0.5rem; font-size: 0.8rem; }
+    }
 </style>
 {% endblock %}
 
@@ -48,8 +59,9 @@
         <h1 style="color: var(--dark);">Registered Students</h1>
         <p class="text-gray">View comprehensive details of all students</p>
     </div>
-    <div>
+    <div style="display: flex; gap: 1rem; align-items: center;">
         <input type="text" id="searchInput" class="search-box" placeholder="Search by name, ID, or room...">
+        <a href="{{ url_for('warden_add_student') }}" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Add Student</a>
     </div>
 </div>
 
@@ -63,6 +75,7 @@
                     <th>Course</th>
                     <th>Contact Info</th>
                     <th>Room Allocation</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -85,10 +98,17 @@
                             <span style="color: var(--warning); font-size: 0.85rem;"><i class="fa-solid fa-triangle-exclamation"></i> Not Allocated</span>
                         {% endif %}
                     </td>
+                    <td>
+                        <form action="{{ url_for('delete_student', student_id=student.Student_ID) }}" method="POST" onsubmit="return confirm('WARNING: This will permanently delete this student record and all associated history (Fees, Laundry, Complaints, Allocations). This action CANNOT be undone. Are you absolutely sure?');" style="display:inline;">
+                            <button type="submit" class="btn-icon" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); padding: 0.5rem; border-radius: 6px; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </form>
+                    </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="5" style="text-align: center; padding: 2rem; color: var(--gray);">No students found.</td>
+                    <td colspan="6" style="text-align: center; padding: 2rem; color: var(--gray);">No students found.</td>
                 </tr>
                 {% endfor %}
             </tbody>

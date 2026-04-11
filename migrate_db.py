@@ -44,6 +44,25 @@ def run_migrations():
         """)
         print("Notification table ready.")
         
+        print("Creating Admin table & seeding...")
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Admin (
+                Admin_ID INT AUTO_INCREMENT PRIMARY KEY,
+                Email VARCHAR(100) UNIQUE NOT NULL,
+                Password VARCHAR(255) NOT NULL
+            )
+        """)
+        
+        # Check if admin exists
+        cursor.execute("SELECT * FROM Admin WHERE Email = 'admin@hms.com'")
+        if not cursor.fetchone():
+            from werkzeug.security import generate_password_hash
+            hashed_pwd = generate_password_hash('admin784195377')
+            cursor.execute("INSERT INTO Admin (Email, Password) VALUES (%s, %s)", ('admin@hms.com', hashed_pwd))
+            print("Default admin seeded.")
+        else:
+            print("Admin already exists.")
+            
         conn.commit()
         print("Migrations ran successfully.")
         

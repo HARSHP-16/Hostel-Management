@@ -98,6 +98,16 @@
         color: var(--primary);
         box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
+    @media (max-width: 480px) {
+        .auth-container {
+            margin: 2rem 1rem;
+            padding: 1.5rem;
+        }
+        
+        .auth-header h2 {
+            font-size: 1.5rem;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -115,6 +125,9 @@
             
             <input type="radio" id="role-warden" name="role" value="warden">
             <label for="role-warden">Warden</label>
+            
+            <input type="radio" id="role-admin" name="role" value="admin">
+            <label for="role-admin">Admin</label>
         </div>
         
         <div class="form-group">
@@ -129,9 +142,5 @@
         
         <button type="submit" class="btn btn-primary btn-block">Sign In</button>
     </form>
-    
-    <div class="auth-footer">
-        <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
-    </div>
 </div>
 {% endblock %}

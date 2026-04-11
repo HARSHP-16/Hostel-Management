@@ -87,6 +87,15 @@
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         transform: translateY(-3px);
     }
+    @media (max-width: 768px) {
+        .dashboard-title { font-size: 1.5rem; }
+        .stat-card { padding: 1rem; }
+        .stat-details p { font-size: 1.1rem; }
+        .action-grid { grid-template-columns: 1fr; }
+        .action-card { display: flex; align-items: center; gap: 1rem; text-align: left; padding: 1rem; }
+        .action-card i { margin-bottom: 0; font-size: 1.5rem; width: 30px; }
+        .action-card h3 { font-size: 1rem; margin: 0; }
+    }
 </style>
 {% endblock %}
 

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Warden | HMS{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('admin_dashboard') }}" style="color: var(--gray); text-decoration: none; display: inline-block; margin-bottom: 1.5rem; font-weight: 500;">
+    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+</a>
+
+<div class="glass" style="max-width: 700px; margin: 0 auto; padding: 2.5rem; border-radius: 16px; border-top: 5px solid var(--primary);">
+    <div style="margin-bottom: 2rem; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 1.5rem; text-align: center;">
+        <div style="width: 60px; height: 60px; background: rgba(79, 70, 229, 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 1rem auto;">
+            <i class="fa-solid fa-user-shield"></i>
+        </div>
+        <h2 style="font-size: 1.8rem; font-weight: 800; color: var(--dark); margin-bottom: 0.5rem;">Provision Warden</h2>
+        <p class="text-gray" style="font-size: 0.95rem;">Create a new management account and optionally assign them to a hostel block.</p>
+    </div>
+    
+    <form method="POST">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div class="form-group" style="background: rgba(255,255,255,0.4); padding: 1rem; border-radius: 10px; border: 1px solid var(--border-color);">
+                <label style="display: block; font-weight: 600; color: var(--dark); margin-bottom: 0.5rem;"><i class="fa-regular fa-id-card"></i> Full Name *</label>
+                <input type="text" name="name" style="width: 100%; border: none; background: transparent; border-bottom: 2px solid rgba(0,0,0,0.1); border-radius: 0; padding: 0.5rem 0;" required placeholder="Enter warden's full name">
+            </div>
+            
+            <div class="form-group" style="background: rgba(255,255,255,0.4); padding: 1rem; border-radius: 10px; border: 1px solid var(--border-color);">
+                <label style="display: block; font-weight: 600; color: var(--dark); margin-bottom: 0.5rem;"><i class="fa-solid fa-phone"></i> Phone Number</label>
+                <input type="text" name="phone" style="width: 100%; border: none; background: transparent; border-bottom: 2px solid rgba(0,0,0,0.1); border-radius: 0; padding: 0.5rem 0;" placeholder="e.g. +1 234 567 8900">
+            </div>
+        </div>
+        
+        <div class="form-group" style="background: rgba(255,255,255,0.4); padding: 1rem; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+            <label style="display: block; font-weight: 600; color: var(--primary); margin-bottom: 0.5rem;"><i class="fa-solid fa-envelope"></i> Email Address *</label>
+            <input type="email" name="email" style="width: 100%; border: none; background: transparent; border-bottom: 2px solid var(--primary); border-radius: 0; padding: 0.5rem 0;" required placeholder="address@university.edu">
+        </div>
+        
+        <div class="form-group" style="background: rgba(255,255,255,0.4); padding: 1rem; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+            <label style="display: block; font-weight: 600; color: var(--danger); margin-bottom: 0.5rem;"><i class="fa-solid fa-key"></i> Initial Password *</label>
+            <input type="password" name="password" style="width: 100%; border: none; background: transparent; border-bottom: 2px solid rgba(0,0,0,0.1); border-radius: 0; padding: 0.5rem 0;" required minlength="6" placeholder="Set a temporary login password">
+            <small class="text-gray" style="display: block; margin-top: 0.5rem;"><i class="fa-solid fa-circle-info"></i> The warden must use this placeholder password to log in.</small>
+        </div>
+        
+        <div class="form-group" style="background: rgba(255,255,255,0.4); padding: 1rem; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 2.5rem;">
+            <label style="display: block; font-weight: 600; color: var(--dark); margin-bottom: 0.5rem;"><i class="fa-solid fa-building-circle-check"></i> Assign Hostel (Optional)</label>
+            <select name="hostel_id" style="width: 100%; border: none; background: transparent; border-bottom: 2px solid rgba(0,0,0,0.1); border-radius: 0; padding: 0.5rem 0; outline: none; cursor: pointer;">
+                <option value="">-- No Hostel Assigned / Setup Later --</option>
+                {% for h in hostels %}
+                <option value="{{ h.Hostel_ID }}">{{ h.Hostel_Name }} ({{ h.Type }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline" style="min-width: 150px; text-align: center;">Cancel</a>
+            <button type="submit" class="btn btn-primary" style="min-width: 250px; font-weight: 700; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);"><i class="fa-solid fa-user-check"></i> Provision Warden</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

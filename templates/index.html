@@ -68,10 +68,19 @@
     }
 
     @media (max-width: 768px) {
-        .hero { flex-direction: column-reverse; text-align: center; }
-        .hero-title { font-size: 2.5rem; }
-        .hero-buttons { justify-content: center; }
-        .decorative-blob { width: 300px; height: 300px; }
+        .hero { 
+            flex-direction: column-reverse; 
+            text-align: center; 
+            padding-top: 2rem;
+            min-height: calc(100vh - 4rem);
+            justify-content: center;
+        }
+        .hero-title { font-size: 2.2rem; }
+        .hero-subtitle { font-size: 1rem; margin-bottom: 2rem; }
+        .hero-buttons { justify-content: center; width: 100%; }
+        .hero-buttons a { width: 100%; }
+        .decorative-blob { width: 250px; height: 250px; }
+        .decorative-blob i { font-size: 5rem; }
     }
 </style>
 {% endblock %}
@@ -82,8 +91,7 @@
         <h1 class="hero-title">Modern Hostel Management at Your Fingertips</h1>
         <p class="hero-subtitle">Experience a seamless and fully digitized living environment. From quick room allocations to responsive issue tracking, HMS streamlines everything for both students and wardens.</p>
         <div class="hero-buttons">
-            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">Login</a>
-            <a href="{{ url_for('register') }}" class="btn btn-outline btn-lg">Create Account</a>
+            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">Login to System</a>
         </div>
     </div>
     <div class="hero-image">

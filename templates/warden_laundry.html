@@ -37,6 +37,12 @@
     
     .badge-pending { background: rgba(245, 158, 11, 0.2); color: #d97706; }
     .badge-completed { background: rgba(16, 185, 129, 0.2); color: #059669; }
+    @media (max-width: 768px) {
+        .page-header h1 { font-size: 1.8rem; }
+        .table-container { padding: 1rem; }
+        .data-table th, .data-table td { padding: 0.75rem 0.5rem; font-size: 0.8rem; }
+        .btn-primary { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
+    }
 </style>
 {% endblock %}
 

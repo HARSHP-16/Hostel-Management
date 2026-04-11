@@ -84,6 +84,12 @@
         background: var(--danger);
         color: white;
     }
+    @media (max-width: 768px) {
+        .page-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+        .page-header h1 { font-size: 1.5rem; }
+        th, td { padding: 0.75rem 0.5rem; font-size: 0.8rem; }
+        .action-btn { font-size: 0.75rem; padding: 0.3rem 0.5rem; margin-bottom: 0.5rem; width: 100%; text-align: center; }
+    }
 </style>
 {% endblock %}
 
@@ -99,7 +105,7 @@
     </div>
 </div>
 
-<div class="table-container">
+<div class="table-container glass">
     <table>
         <thead>
             <tr>

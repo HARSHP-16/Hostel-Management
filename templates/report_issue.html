@@ -76,6 +76,11 @@
     .badge-open { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
     .badge-in-progress { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
     .badge-closed { background: rgba(16, 185, 129, 0.1); color: var(--secondary); }
+    @media (max-width: 768px) {
+        .form-container { margin: 1rem auto; padding: 1.5rem; }
+        .form-header h2 { font-size: 1.5rem; }
+        .history-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    }
 </style>
 {% endblock %}
 

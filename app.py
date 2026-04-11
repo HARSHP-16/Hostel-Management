@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, session, redirect, url_for, f
 import os
 from db import get_db_connection
 from werkzeug.security import generate_password_hash, check_password_hash
-from auth_utils import login_required, warden_required, student_required
+from auth_utils import login_required, warden_required, student_required, admin_required
 import pymysql
 import pymysql.cursors
 from urllib.parse import urlparse
@@ -83,48 +83,6 @@ def index():
         return redirect(url_for('student_dashboard'))
     return render_template('index.html')
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        role = request.form.get('role')
-        name = request.form.get('name')
-        email = request.form.get('email')
-        phone = request.form.get('phone')
-        password = request.form.get('password')
-        
-        hashed_password = generate_password_hash(password)
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        try:
-            if role == 'student':
-                gender = request.form.get('gender')
-                course = request.form.get('course')
-                address = request.form.get('address')
-                
-                cursor.execute(
-                    "INSERT INTO Student (Name, Gender, Phone, Email, Password, Address, Course) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                    (name, gender, phone, email, hashed_password, address, course)
-                )
-            else:
-                # For warden, we insert without a Hostel_ID initially, the admin can assign this later
-                cursor.execute(
-                    "INSERT INTO Warden (Name, Phone, Email, Password) VALUES (%s, %s, %s, %s)",
-                    (name, phone, email, hashed_password)
-                )
-            
-            conn.commit()
-            flash('Registration successful! Please log in.', 'success')
-            return redirect(url_for('login'))
-        except pymysql.Error as err:
-            flash(f"Error: {err}", 'error')
-        finally:
-            cursor.close()
-            conn.close()
-            
-    return render_template('register.html')
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -133,9 +91,21 @@ def login():
         password = request.form.get('password')
         
         conn = get_db_connection()
-        cursor = conn.cursor()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
         
-        query = "SELECT * FROM Student WHERE Email = %s" if role == 'student' else "SELECT * FROM Warden WHERE Email = %s"
+        if role == 'student':
+            query = "SELECT * FROM Student WHERE Email = %s"
+            id_field = 'Student_ID'
+            name_field = 'Name'
+        elif role == 'warden':
+            query = "SELECT * FROM Warden WHERE Email = %s"
+            id_field = 'Warden_ID'
+            name_field = 'Name'
+        else: # admin
+            query = "SELECT * FROM Admin WHERE Email = %s"
+            id_field = 'Admin_ID'
+            name_field = 'Email' # Fallback to email if name doesn't exist
+            
         cursor.execute(query, (email,))
         user = cursor.fetchone()
         
@@ -143,15 +113,17 @@ def login():
         conn.close()
         
         if user and check_password_hash(user['Password'], password):
-            session['user_id'] = user['Student_ID'] if role == 'student' else user['Warden_ID']
+            session['user_id'] = user[id_field]
             session['role'] = role
-            session['name'] = user['Name']
-            flash(f"Welcome back, {user['Name']}!", 'success')
+            session['name'] = user.get('Name', 'Administrator')
+            flash(f"Welcome back, {session['name']}!", 'success')
             
-            if role == 'student':
-                return redirect(url_for('student_dashboard'))
-            else:
+            if role == 'admin':
+                return redirect(url_for('admin_dashboard'))
+            elif role == 'warden':
                 return redirect(url_for('warden_dashboard'))
+            else:
+                return redirect(url_for('student_dashboard'))
         else:
             flash('Invalid email or password.', 'error')
             
@@ -339,6 +311,66 @@ def warden_students():
     conn.close()
     return render_template('warden_students.html', students=students)
 
+@app.route('/warden/add_student', methods=['GET', 'POST'])
+@login_required
+@warden_required
+def warden_add_student():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        phone = request.form.get('phone')
+        gender = request.form.get('gender')
+        course = request.form.get('course')
+        address = request.form.get('address')
+        
+        # Warden provides the password
+        password = generate_password_hash(request.form.get('password'))
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        try:
+            cursor.execute(
+                "INSERT INTO Student (Name, Gender, Phone, Email, Password, Address, Course) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                (name, gender, phone, email, password, address, course)
+            )
+            conn.commit()
+            flash('Student securely registered. Inform them of their login details.', 'success')
+            return redirect(url_for('warden_students'))
+        except pymysql.Error as err:
+            if err.args[0] == 1062:
+                flash('Email already registered for a student.', 'error')
+            else:
+                flash(f"Database Error: {err}", 'error')
+        finally:
+            cursor.close()
+            conn.close()
+            
+    return render_template('warden_add_student.html')
+
+@app.route('/warden/delete_student/<int:student_id>', methods=['POST'])
+@login_required
+@warden_required
+def delete_student(student_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        # 1. Manually clean up notifications (no FK constraint)
+        cursor.execute("DELETE FROM Notification WHERE User_ID = %s AND Role = 'student'", (student_id,))
+        
+        # 2. Delete student (cascades will handles Allocation, Fees, Leave, Laundry, Complaint)
+        cursor.execute("DELETE FROM Student WHERE Student_ID = %s", (student_id,))
+        
+        conn.commit()
+        flash('Student record and all associated history deleted successfully.', 'info')
+    except pymysql.Error as err:
+        flash(f"Error deleting student: {err}", 'error')
+    finally:
+        cursor.close()
+        conn.close()
+    
+    return redirect(url_for('warden_students'))
+
 @app.route('/warden/room/<int:room_id>')
 @login_required
 @warden_required
@@ -453,9 +485,72 @@ def update_leave_status(leave_id):
         
     return redirect(url_for('manage_leaves'))
 
-@app.route('/warden/add_hostel', methods=['GET', 'POST'])
+@app.route('/admin/dashboard')
 @login_required
-@warden_required
+@admin_required
+def admin_dashboard():
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    # Get stats
+    stats = {}
+    cursor.execute("SELECT COUNT(*) as count FROM Warden")
+    stats['wardens'] = cursor.fetchone()['count']
+    
+    cursor.execute("SELECT COUNT(*) as count FROM Hostel")
+    stats['hostels'] = cursor.fetchone()['count']
+    
+    cursor.execute("SELECT COUNT(*) as count FROM Room")
+    stats['rooms_total'] = cursor.fetchone()['count']
+    
+    # Lists
+    cursor.execute("SELECT w.*, h.Hostel_Name FROM Warden w LEFT JOIN Hostel h ON w.Hostel_ID = h.Hostel_ID ORDER BY w.Name ASC")
+    wardens = cursor.fetchall()
+    
+    cursor.execute("SELECT h.Hostel_ID, h.Hostel_Name, h.Location, h.Type, (SELECT COUNT(*) FROM Room WHERE Hostel_ID = h.Hostel_ID) as Room_Count FROM Hostel h ORDER BY h.Hostel_Name")
+    hostels = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+    return render_template('admin_dashboard.html', stats=stats, wardens=wardens, hostels=hostels)
+
+@app.route('/admin/add_warden', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def admin_add_warden():
+    conn = get_db_connection()
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        phone = request.form.get('phone')
+        hostel_id = request.form.get('hostel_id') or None
+        password = generate_password_hash(request.form.get('password'))
+        
+        try:
+            cursor.execute(
+                "INSERT INTO Warden (Name, Phone, Email, Password, Hostel_ID) VALUES (%s, %s, %s, %s, %s)",
+                (name, phone, email, password, hostel_id)
+            )
+            conn.commit()
+            flash('Warden account created successfully!', 'success')
+            return redirect(url_for('admin_dashboard'))
+        except pymysql.Error as err:
+            if err.args[0] == 1062:
+                flash('Email already registered for a warden.', 'error')
+            else:
+                flash(f"Database Error: {err}", 'error')
+    
+    cursor.execute("SELECT * FROM Hostel")
+    hostels = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    
+    return render_template('admin_add_warden.html', hostels=hostels)
+
+@app.route('/admin/add_hostel', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def add_hostel():
     if request.method == 'POST':
         name = request.form.get('name')
@@ -468,7 +563,7 @@ def add_hostel():
             cursor.execute("INSERT INTO Hostel (Hostel_Name, Location, Type) VALUES (%s, %s, %s)", (name, location, h_type))
             conn.commit()
             flash('Hostel block added successfully!', 'success')
-            return redirect(url_for('add_room'))
+            return redirect(url_for('admin_dashboard'))
         except pymysql.Error as err:
             flash(f"Database Error: {err}", 'error')
         finally:
