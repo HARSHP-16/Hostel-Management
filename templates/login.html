@@ -119,6 +119,7 @@
     </div>
     
     <form method="POST" action="{{ url_for('login') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="role-toggle">
             <input type="radio" id="role-student" name="role" value="student" checked>
             <label for="role-student">Student</label>

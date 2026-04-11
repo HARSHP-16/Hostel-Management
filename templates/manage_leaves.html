@@ -133,10 +133,12 @@
                 <td>
                     {% if leave.Status == 'Pending' %}
                     <form method="POST" action="{{ url_for('update_leave_status', leave_id=leave.Leave_ID) }}" style="display: inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="status" value="Approved">
                         <button type="submit" class="action-btn btn-approve">Approve</button>
                     </form>
                     <form method="POST" action="{{ url_for('update_leave_status', leave_id=leave.Leave_ID) }}" style="display: inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="status" value="Rejected">
                         <button type="submit" class="action-btn btn-reject">Reject</button>
                     </form>

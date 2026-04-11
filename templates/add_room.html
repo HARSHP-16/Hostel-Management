@@ -11,6 +11,7 @@
     <h2 style="color: var(--primary); margin-bottom: 1.5rem;">Add New Room</h2>
     
     <form method="POST" action="{{ url_for('add_room') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div style="margin-bottom: 1.5rem;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" for="hostel_id">Hostel</label>
             <select id="hostel_id" name="hostel_id" required style="width: 100%; padding: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px;">

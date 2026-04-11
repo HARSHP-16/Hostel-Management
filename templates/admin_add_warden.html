@@ -17,6 +17,7 @@
     </div>
     
     <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
             <div class="form-group" style="background: rgba(255,255,255,0.4); padding: 1rem; border-radius: 10px; border: 1px solid var(--border-color);">
                 <label style="display: block; font-weight: 600; color: var(--dark); margin-bottom: 0.5rem;"><i class="fa-regular fa-id-card"></i> Full Name *</label>
@@ -36,7 +37,7 @@
         
         <div class="form-group" style="background: rgba(255,255,255,0.4); padding: 1rem; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
             <label style="display: block; font-weight: 600; color: var(--danger); margin-bottom: 0.5rem;"><i class="fa-solid fa-key"></i> Initial Password *</label>
-            <input type="password" name="password" style="width: 100%; border: none; background: transparent; border-bottom: 2px solid rgba(0,0,0,0.1); border-radius: 0; padding: 0.5rem 0;" required minlength="6" placeholder="Set a temporary login password">
+            <input type="password" name="password" style="width: 100%; border: none; background: transparent; border-bottom: 2px solid rgba(0,0,0,0.1); border-radius: 0; padding: 0.5rem 0;" required minlength="8" placeholder="Set a temporary login password">
             <small class="text-gray" style="display: block; margin-top: 0.5rem;"><i class="fa-solid fa-circle-info"></i> The warden must use this placeholder password to log in.</small>
         </div>
         

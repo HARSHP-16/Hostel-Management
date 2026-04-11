@@ -96,6 +96,7 @@
     </div>
     
     <form method="POST" action="{{ url_for('apply_leave') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
             <label class="form-label" for="leave_date">Leave Date</label>
             <input type="date" id="leave_date" name="leave_date" class="form-control" required>

@@ -11,6 +11,7 @@
     <h2 style="color: var(--primary); margin-bottom: 1.5rem;">Add New Hostel Block</h2>
     
     <form method="POST" action="{{ url_for('add_hostel') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div style="margin-bottom: 1.5rem;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" for="name">Hostel Name</label>
             <input type="text" id="name" name="name" required placeholder="e.g., Jhelum Hostel" style="width: 100%; padding: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px;">

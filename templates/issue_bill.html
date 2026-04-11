@@ -11,6 +11,7 @@
     <h2 style="color: var(--primary); margin-bottom: 1.5rem;">Issue a New Bill</h2>
     
     <form method="POST" action="{{ url_for('issue_bill') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div style="margin-bottom: 1.5rem;">
             <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;" for="student_id">Select Student</label>
             <select id="student_id" name="student_id" required style="width: 100%; padding: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px;">

@@ -133,6 +133,7 @@
     
     <div class="payment-action">
         <form method="POST" action="{{ url_for('pay_fees', fee_id=fee.Fee_ID) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem; border-radius: 12px;">
                 <i class="fa-solid fa-lock" style="margin-right: 0.5rem;"></i> Confirm & Pay ${{ "%.2f"|format(fee.Amount) }}
             </button>
